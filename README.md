@@ -1,3 +1,3 @@
-* Some python scripts to compute persisten homology.
+= Some python scripts to compute persisten homology.
 
-** Persistent Path Homology
+* Persistent Path Homology
