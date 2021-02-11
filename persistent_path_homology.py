@@ -1,0 +1,406 @@
+#!/usr/bin/env python3
+
+import numpy as np
+from math import *
+
+#############################################
+######## Auxiliary Functions
+#############################################
+
+def generating_all_regular_paths_dim_p( B_i, dim_p, network_set_size ):
+    """
+    Given a numpy array B_i of shape (a,b), representing
+    all regular paths of dimension b, this function
+    will return a numpy array B_{i+1} of shape (a, b+1),
+    representing all regular paths of dimension b+1.
+
+    This auxiliary function will be used at the method:
+       PPH.Basis_of_the_vector_spaces_spanned_by_regular_paths().
+    """
+
+    B_next = [] # B_next := B_{i+1}
+
+    for i in range( B_i.shape[0] ):
+        for j in range( network_set_size ):
+            if B_i[ i, -1 ] != j:
+                B_next
+
+
+
+
+#############################################
+######## Main Class: PPH
+#############################################
+class PPH:
+    """
+    This class will calculate the persitent path homology
+    of a network (network_set, network_weight) which satisfies
+      (i)  network_set is a finite set represented by a
+           numpy array;
+
+      (ii) network_weight is a function definied mathematically
+           as:
+           network_weight: network_set x network_set -> R_+
+
+           The machine will store this function as a numpy array
+           of dimension (network_set, network_set)
+
+
+    After storing the network the class PPH will calculate its
+    persistent path homology of a given dimension d. The method
+    responsible for such calculation is: diagram
+
+    All the algorithm deployed here is based at the theory developed
+    at the following paper:
+
+       + PERSISTENT PATH HOMOLOGY OF DIRECTED NETWORKS, from the
+         authors Samir Chowdhury and Facundo Mémoli
+
+    This paper can be easily found at the website:
+       -> https://arxiv.org/abs/1701.00565
+
+    The same authors have a paper with an algorithm implemented
+    to calculate the persistent path homology. The algorithm
+    resembles the one to calculate the persitent diagram when
+    considering the field Z/2Z over the vector spaces from
+    the homology groups.
+
+    The paper with the algorithm can be found here:
+       -> https://epubs.siam.org/doi/10.1137/1.9781611975031.75
+    exectly at the end of the file.
+    """
+
+    def __init__(self, network_set, network_weight, dim):
+        """
+        atributes:
+          + network_set: a numpy array storing the sets of
+                         the network
+
+          + network_weight: a nupy array storing the weight
+                            function which do not need to be symmetric
+
+          + network_set_size: integer representing the size of our
+                              data
+
+          + dim: dimension of the persistent path diagram
+
+          + Basis: a list looking like
+
+                 Basis := [ B0, B_1, B_2, ..., B_(self.dim + 1) ].
+
+            where each element is a numpy array:
+                B0: stores regular paths of dimension 0;
+                B1: stores regular paths of dimension 1;
+                B2: stores regular paths of dimension 2;
+                                 .
+                                 .
+                                 .
+        """
+
+        self.dim   = dim
+        self.basis = []
+
+        if network_set.size != 0:
+            self.network_set
+            self.network_set_size = network_set.size
+
+        else:
+            print( "Please the network_set cannot be the empty
+                    set\n." )
+            return 0
+
+
+        if network_weight.shape[0] == network_weight.shape[1] and \
+           network_weight.shape[0] > 0:
+
+            self.network_weight
+
+        else:
+            print( "Please the network_weight must be a square matrix
+                    and must not be empty\n." )
+            return 0
+
+
+
+
+    def Basis_of_the_vector_spaces_spanned_by_regular_paths(self):
+        """
+        Here we will be storing the regular paths of
+        dimension 0, 1, ..., self.dim + 1 into a list
+        called basis:
+
+             basis := [ B0, B_1, B_2, ..., B_(self.dim + 1) ].
+
+        The elements of the list basis are numpy arrays such
+        that:
+            B0: stores regular paths of dimension 0;
+            B1: stores regular paths of dimension 1;
+            B2: stores regular paths of dimension 2;
+                             .
+                             .
+                             .
+
+        The list Basis is an atribute of our class PPH.
+
+        Important, the paths of dimension p will be represented
+        by a sequence a_0, a_1, a_2, ..., a_p satisfying
+
+             * a_0, a_1, a_2, ..., a_p in {0, 1, 2, ..., p}
+             * and a_i != a_{i+1}, for all i in {0, 1, 2, ..., p-1}.
+
+        Therefore, if a_i = 7, then a_i is merely an index pointer
+        of the element 7 of the numpy.array network_set.
+
+        With that in mind, suppose that we have
+        network_set_size = 3, then
+
+        B0 = numpy.array( [0, 1, 2 ] )
+        B1 = numpy.array( [ [0,1], [0,2], [1,2], [1,0], [2,0], [2,1]] )
+        B2 = numpy.array( [ [0,1,2], [1,2,0], [2,0,1], ... )
+
+        This is merely a combinatorial task!
+        """
+
+##########################################
+################# ----> basis
+##########################################
+B0 = np.arange( size_of_the_sample )
+
+B1_list = []
+
+for i in set( range ( size_of_the_sample ) ):
+    for j in set( range( size_of_the_sample ) ) - set( [i] ):
+        B1_list.append( [i,j] )
+
+B1 = np.array( B1_list )
+
+B2_list = []
+
+for i in set( range ( size_of_the_sample ) ):
+    for j in set( range( size_of_the_sample ) ) - set( [i] ):
+        for k in set( range( size_of_the_sample ) ) - set( [j] ):
+            B2_list.append( [i,j,k] )
+
+B2 = np.array( B2_list )
+
+
+B3_list = []
+
+for i in set( range ( size_of_the_sample ) ):
+    for j in set( range( size_of_the_sample ) ) - set( [i] ):
+        for k in set( range( size_of_the_sample ) ) - set( [j] ):
+            for l in set( range( size_of_the_sample ) ) - set( [k] ):
+                B3_list.append( [i,j,k,l] )
+
+B3 = np.array( B3_list )
+
+basis = [ B0, B1, B2, B3 ]
+
+dimensionBasis = [ B0.size,
+                   B1.shape[0],
+                   B2.shape[0],
+                   B3.shape[0] ]
+
+#
+# constraints for the T_p structure (need to be improved)
+array_index = 0
+entry_index = 1
+allow_index = 2
+mark_index  = 3
+basis_index = 4
+
+######################################
+###### ----------> Auxiliary functions
+######################################
+
+def allow_time ( path, dim):
+
+    if dim == 0:
+        return 0
+
+    path_size = path.size
+
+    distance = []
+
+    find_indexes = np.arange( path_size )[ path == 1 ]
+
+    for i in find_indexes:
+        j = 0
+        while j < dim:
+            distance.append( sqrt( sum( (X[basis[dim][i][j]] - X[basis[dim][i][j+1]] )**2) ) )
+            j += 1
+
+        ## j = 0
+        ## while j <= dim:
+        ##     distance.append( sqrt( sum( X[ path[i] ] - X[ path[i+1] ] )**2 )  )
+        ##     i += 1
+
+    #print( distance )
+    return max( distance )
+
+def entry_time( path, dim, index_base ):
+
+    if dim == 0:
+        return 0
+    elif dim == 1:
+        return allow_time( path, dim )
+    else:
+        aux = [ allow_time( path, dim ) ]
+
+
+        aux_basis = basis[ dim ][ path == 1  ][0]
+        print('oi')
+        print( aux_basis )
+        i = 0
+
+        aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
+        while i <= dim:
+            aux_index = [ x != i for x in range(dim+1) ]
+
+
+            for j in range( dimensionBasis[ dim - 1 ] ):
+                if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
+                    aux_path[j] = 1
+            i += 1
+
+        aux.append( allow_time( aux_path, dim -1 ) )
+
+
+        return max( aux )
+
+
+###################################
+###### ---------> Tp structure
+###### (Obs: it could be defined as a class here)
+###################################
+
+T_p = []
+i = 0
+
+while i <= max_dimension_studied + 1:
+    j   = 0
+
+    # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
+    T_i = []
+
+    while j < dimensionBasis[ i ]:
+        aux = np.zeros( dimensionBasis[i] )
+        aux[j] = 1
+
+        T_i.append( [ aux, entry_time( aux, i, j ), allow_time( aux, i ), False, j] )
+        j += 1
+
+    i += 1
+    T_p.append( T_i )
+
+
+#############################################################
+### -----> Sorting the structures T_p and basis in agreement
+###        with the allow times.
+#############################################################
+
+for i in range( len( T_p ) ):
+    T_p[i].sort( key = lambda x: x[ allow_index ])
+
+    aux_index = [x[basis_index] for x in T_p[i]]
+    basis_i_copy = basis[i].copy()
+
+    for j in range( dimensionBasis[ i ] ):
+        basis[i][j] = basis_i_copy[ aux_index[j] ]
+
+
+###########################################################
+####### --------> Computing the persistence path diagram
+###########################################################
+
+def BasisChange( an_array, dim ):
+
+    print('e aqui?')
+    p = dim # is dim really necessary or is implicit?
+
+    #u = np.zeros( dimensionBasis[p - 1] )
+    #for i in range( an_array.size ):
+    aux_basis = basis[ dim ][ an_array == 1  ][0]
+    i = 0
+    #aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
+    u = np.zeros( dimensionBasis[ dim - 1 ] )
+    while i <= dim:
+        aux_index = [ x != i for x in range(dim+1) ]
+
+
+        for j in range( dimensionBasis[ dim - 1 ] ):
+            if np.all( basis[dim-1][j] == aux_basis[ aux_index ]) and T_p[dim-1][j][mark_index] == False:
+                u[j] = 1
+        i += 1
+    #aux_index = [ x != i for x in range( an_array.size ) ]
+    #aux_array =  an_array[ aux_index ]
+    #print('dim, aux_array')
+    #print(dim, aux_array)
+
+    #for j in range( dimensionBasis[ p - 1 ] ):
+    #    if np.all( aux_array == basis[p][j] ) and  T_p[p - 1][j][mark_index] == False:
+    #        u[j] = 1
+
+
+
+
+    print(u)
+   
+    while np.all( u != 0 ):
+        print('chegou aqui?\n')
+        aux_sigma     = np.arange( u.size )
+        aux_index_eq1 = (aux_sigma[ u == 1 ])
+
+
+        aux_index_max = aux_index_eq1.max() # equivalent to i in the paper
+        sigma = basis[ p -1 ][aux_index_max]
+
+        et = max( [allow_time(an_array, p), allow_time(sigma, p-1)] )
+
+        if  T_p[p - 1][ aux_index_max ][ array_index ][aux_index_max] == 0 :
+            break
+
+        u_next = u ^ T_p[ p-1 ][ aux_index_max ][ array_index ]
+
+
+    return [u_next, aux_index_map, et]
+
+
+Pers = [ [], [], [] ]
+
+
+for p in range( max_dimension_studied + 1): # max_dimension_studied + 1
+                                            # because range returns
+                                            # a interval like [a,b)
+
+    j = 0
+    print('aui000')
+    while j < dimensionBasis[ p + 1 ]:
+        return_BasisChange = BasisChange( basis[p+1][j], p+1 )
+        print('aqui')
+        print(return_BasisChange)
+
+        u = return_BasisChange[0]
+        i = return_BasisChange[1]
+        et = return_BasisChange[2]
+
+        if np.all( u == 0 ):
+            T_p[ p + 1 ][j][mark_index] = True
+
+        else:
+            T_p[p][i][ array_index ] = u
+            T_p[p][i][ entry_index ] = et
+
+            Pers[p].append( [T_p[p][i][entry_index], et ] )
+
+        j += 1
+
+    j = 0
+    while j < dimensionBasis[ p ]:
+        if T_p[ p ][j][ mark_index ] == True and \
+           np.all( T_p_[ p ][j][ array_index ] == 0):
+            Pers[p].append( [T_p[p][j][ entry_index ], np.inf] )
+
+        j += 1
+
+print( Pers )
