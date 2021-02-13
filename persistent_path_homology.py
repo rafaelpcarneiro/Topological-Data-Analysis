@@ -32,60 +32,6 @@ def generating_all_regular_paths_dim_p( B_i, network_set_size ):
 
 
 
-def allow_time ( path, dim):
-
-    if dim == 0:
-        return 0
-
-    path_size = path.size
-
-    distance = []
-
-    find_indexes = np.arange( path_size )[ path == 1 ]
-
-    for i in find_indexes:
-        j = 0
-        while j < dim:
-            distance.append( sqrt( sum( (X[basis[dim][i][j]] - X[basis[dim][i][j+1]] )**2) ) )
-            j += 1
-
-        ## j = 0
-        ## while j <= dim:
-        ##     distance.append( sqrt( sum( X[ path[i] ] - X[ path[i+1] ] )**2 )  )
-        ##     i += 1
-
-    #print( distance )
-    return max( distance )
-
-def entry_time( path, dim, index_base ):
-
-    if dim == 0:
-        return 0
-    elif dim == 1:
-        return allow_time( path, dim )
-    else:
-        aux = [ allow_time( path, dim ) ]
-
-
-        aux_basis = basis[ dim ][ path == 1  ][0]
-        print('oi')
-        print( aux_basis )
-        i = 0
-
-        aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
-        while i <= dim:
-            aux_index = [ x != i for x in range(dim+1) ]
-
-
-            for j in range( dimensionBasis[ dim - 1 ] ):
-                if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
-                    aux_path[j] = 1
-            i += 1
-
-        aux.append( allow_time( aux_path, dim -1 ) )
-
-
-        return max( aux )
 
 
 
@@ -131,7 +77,7 @@ class PPH:
     exectly at the end of the file.
     """
 
-    def __init__(self, network_set, network_weight, dim):
+    def __init__(self, network_set, network_weight, pph_dim):
         """
         atributes:
           + network_set: a numpy array storing the sets of
@@ -143,7 +89,7 @@ class PPH:
           + network_set_size: integer representing the size of our
                               data
 
-          + dim: dimension of the persistent path diagram
+          + pph_dim: dimension of the persistent path diagram
 
           + basis: a list looking like
 
@@ -164,7 +110,7 @@ class PPH:
                                       basis[1].shape[0], ... ]
         """
 
-        self.dim   =     dim
+        self.pph_dim   = pph_dim
         self.basis =     []
         self.basis_dim = []
 
@@ -183,20 +129,17 @@ class PPH:
             self.network_weight = network_weight
 
         else:
-            print( "Please the network_weight must be a square matrix
-                    and must not be empty\n." )
+            print( "Please the network_weight must be a square matrix and must not be empty\n." )
             return 0
-
-
 
 
     def Basis_of_the_vector_spaces_spanned_by_regular_paths(self):
         """
         Here we will be storing the regular paths of
-        dimension 0, 1, ..., self.dim + 1 into a list
+        dimension 0, 1, ..., self.pph_dim + 1 into a list
         called basis:
 
-             basis := [ B0, B_1, B_2, ..., B_(self.dim + 1) ].
+             basis := [ B0, B_1, B_2, ..., B_(self.pph_dim + 1) ].
 
         The elements of the list basis are numpy arrays such
         that:
@@ -233,7 +176,7 @@ class PPH:
             self.basis[0][i,0] = i
 
         i = 1
-        while i <= dim + 1:
+        while i <= self.pph_dim + 1:
             self.basis.append( generating_all_regular_paths_dim_p( self.basis[i], self.network_set_size ) )
             i += 1
 
@@ -246,10 +189,88 @@ class PPH:
         self.dim + 1.
         """
         i = 0
-        while i <= self.dim + 1:
+        while i <= self.pph_dim + 1:
            self.basis_dim.append( self.basis.shape[0] )
 
 
+    def allow_time (self, path_vector, path_dim):
+        """
+        Given the vector path_vector, an element of the vector
+        space spanned by the regular paths of dimension path_dim.
+        That is
+            path_vector := sum_{i=0}^{self.basis_dim} alpha_i * basis[path_dim][i]
+        with alpha_i in Z/2Z.
+
+        Then this function will calculate the time of birth of
+        such vector. In another words, this method
+        returns the value
+            min { k in A_k; path_vector in A_k, k >= = },
+        where A_k is the set of the allowed regular paths of dimension
+        k.
+
+        Note tha path_vector is a numpy array that will eventually
+        look like this, for instance
+           path_vector = np.array([ 0, 0, 1, 1, 1, 0, 0, 1]),
+        meaning that
+           path_vector = self.basis[path_dim][2] + self.basis[path_dim][3] +
+                         self.basis[path_dim][4] + self.basis[path_dim][7]
+        """
+
+        if path_dim == 0:
+            return 0
+
+        distance = []
+
+        # Considering that
+        # path_vector := sum_{i=0}^{self.basis_dim[path_dim]} alpha_i * self.basis[path_dim][i]
+        find_indexes = np.arange( path_vector.size )[ path_vector == 1 ]
+
+        # Let's find the elements of the basis that generate path_vector.
+        # We will write vector_path = sum_i alpha_i * sigma_i,
+        # with alpha_i in Z/2Z and sigma_i in self.basis[path.dim]
+
+        for i in find_indexes:
+            j = 0
+            sigma_i = self.basis[path_dim][i] # sigma_i will look like: np.array( [ 0,2, 5,1, 3 ] ), for  instance
+
+            # now we will run through the the vertices of the path sigma_i and we will
+            # store the time needed for the edges to appear.
+            while j < path_dim:
+                distance.append( self.network_weight( sigma_i[j], sigma_i[j+1] ) )
+                j += 1
+
+        return max( distance )
+
+
+    def entry_time(self, path, dim, index_base ):
+
+        if dim == 0:
+            return 0
+        elif dim == 1:
+            return allow_time( path, dim )
+        else:
+            aux = [ allow_time( path, dim ) ]
+
+
+            aux_basis = basis[ dim ][ path == 1  ][0]
+            print('oi')
+            print( aux_basis )
+            i = 0
+
+            aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
+            while i <= dim:
+                aux_index = [ x != i for x in range(dim+1) ]
+
+
+                for j in range( dimensionBasis[ dim - 1 ] ):
+                    if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
+                        aux_path[j] = 1
+                i += 1
+
+            aux.append( allow_time( aux_path, dim -1 ) )
+
+
+            return max( aux )
 # constraints for the T_p structure (need to be improved)
 array_index = 0
 entry_index = 1
