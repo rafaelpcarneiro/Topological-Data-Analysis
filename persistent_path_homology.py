@@ -7,24 +7,85 @@ from math import *
 ######## Auxiliary Functions
 #############################################
 
-def generating_all_regular_paths_dim_p( B_i, dim_p, network_set_size ):
+def generating_all_regular_paths_dim_p( B_i, network_set_size ):
     """
     Given a numpy array B_i of shape (a,b), representing
     all regular paths of dimension b, this function
-    will return a numpy array B_{i+1} of shape (a, b+1),
+    will return a numpy array B_{i+1} of shape (a * (network_set_size - 1), b+1),
     representing all regular paths of dimension b+1.
 
     This auxiliary function will be used at the method:
        PPH.Basis_of_the_vector_spaces_spanned_by_regular_paths().
     """
 
-    B_next = [] # B_next := B_{i+1}
+    # Notation ->  B_next := B_{i+1}
+    size_B_next = B_i.shape[0] * (network_set_size - 1 )
+    B_next = np.zeros( (size_B_next, B_i.shape[1] + 1) )
 
     for i in range( B_i.shape[0] ):
         for j in range( network_set_size ):
             if B_i[ i, -1 ] != j:
-                B_next
+                B_next[i, 0:B_i.shape[0] ] = B_i[i,:]
+                B_next[i, -1 ] = j
 
+    return B_next
+
+
+
+def allow_time ( path, dim):
+
+    if dim == 0:
+        return 0
+
+    path_size = path.size
+
+    distance = []
+
+    find_indexes = np.arange( path_size )[ path == 1 ]
+
+    for i in find_indexes:
+        j = 0
+        while j < dim:
+            distance.append( sqrt( sum( (X[basis[dim][i][j]] - X[basis[dim][i][j+1]] )**2) ) )
+            j += 1
+
+        ## j = 0
+        ## while j <= dim:
+        ##     distance.append( sqrt( sum( X[ path[i] ] - X[ path[i+1] ] )**2 )  )
+        ##     i += 1
+
+    #print( distance )
+    return max( distance )
+
+def entry_time( path, dim, index_base ):
+
+    if dim == 0:
+        return 0
+    elif dim == 1:
+        return allow_time( path, dim )
+    else:
+        aux = [ allow_time( path, dim ) ]
+
+
+        aux_basis = basis[ dim ][ path == 1  ][0]
+        print('oi')
+        print( aux_basis )
+        i = 0
+
+        aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
+        while i <= dim:
+            aux_index = [ x != i for x in range(dim+1) ]
+
+
+            for j in range( dimensionBasis[ dim - 1 ] ):
+                if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
+                    aux_path[j] = 1
+            i += 1
+
+        aux.append( allow_time( aux_path, dim -1 ) )
+
+
+        return max( aux )
 
 
 
@@ -84,9 +145,9 @@ class PPH:
 
           + dim: dimension of the persistent path diagram
 
-          + Basis: a list looking like
+          + basis: a list looking like
 
-                 Basis := [ B0, B_1, B_2, ..., B_(self.dim + 1) ].
+                 basis := [ B0, B_1, B_2, ..., B_(self.dim + 1) ].
 
             where each element is a numpy array:
                 B0: stores regular paths of dimension 0;
@@ -95,25 +156,31 @@ class PPH:
                                  .
                                  .
                                  .
+          + basis_dim: a list containing as elements the values
+                       of the dimensions of each vector space
+                       spaned by the basis B0, B1, B2, above.
+                       In other words:
+                       basis_dim := [ basis[0].shape[0],
+                                      basis[1].shape[0], ... ]
         """
 
-        self.dim   = dim
-        self.basis = []
+        self.dim   =     dim
+        self.basis =     []
+        self.basis_dim = []
 
         if network_set.size != 0:
-            self.network_set
+            self.network_set = network_set
             self.network_set_size = network_set.size
 
         else:
-            print( "Please the network_set cannot be the empty
-                    set\n." )
+            print( "Please the network_set cannot be the empty set\n." )
             return 0
 
 
         if network_weight.shape[0] == network_weight.shape[1] and \
            network_weight.shape[0] > 0:
 
-            self.network_weight
+            self.network_weight = network_weight
 
         else:
             print( "Please the network_weight must be a square matrix
@@ -154,54 +221,35 @@ class PPH:
         With that in mind, suppose that we have
         network_set_size = 3, then
 
-        B0 = numpy.array( [0, 1, 2 ] )
+        B0 = numpy.array( [ [0], [1], [2] ] )
         B1 = numpy.array( [ [0,1], [0,2], [1,2], [1,0], [2,0], [2,1]] )
         B2 = numpy.array( [ [0,1,2], [1,2,0], [2,0,1], ... )
 
         This is merely a combinatorial task!
         """
 
-##########################################
-################# ----> basis
-##########################################
-B0 = np.arange( size_of_the_sample )
+        self.basis.append( np.zeros(self.network_set_size, 1) )
+        for i in range( self.network_set ):
+            self.basis[0][i,0] = i
 
-B1_list = []
-
-for i in set( range ( size_of_the_sample ) ):
-    for j in set( range( size_of_the_sample ) ) - set( [i] ):
-        B1_list.append( [i,j] )
-
-B1 = np.array( B1_list )
-
-B2_list = []
-
-for i in set( range ( size_of_the_sample ) ):
-    for j in set( range( size_of_the_sample ) ) - set( [i] ):
-        for k in set( range( size_of_the_sample ) ) - set( [j] ):
-            B2_list.append( [i,j,k] )
-
-B2 = np.array( B2_list )
+        i = 1
+        while i <= dim + 1:
+            self.basis.append( generating_all_regular_paths_dim_p( self.basis[i], self.network_set_size ) )
+            i += 1
 
 
-B3_list = []
+    def dimensions_of_each_vector_space_spanned_by_regular_paths(self):
+        """
+        Given the list self.basis of numpy arrays this method will
+        store at the list self.basis_dim the dimensions of the
+        vector spaces spanned by regular paths of dimension 0,1,2,...,
+        self.dim + 1.
+        """
+        i = 0
+        while i <= self.dim + 1:
+           self.basis_dim.append( self.basis.shape[0] )
 
-for i in set( range ( size_of_the_sample ) ):
-    for j in set( range( size_of_the_sample ) ) - set( [i] ):
-        for k in set( range( size_of_the_sample ) ) - set( [j] ):
-            for l in set( range( size_of_the_sample ) ) - set( [k] ):
-                B3_list.append( [i,j,k,l] )
 
-B3 = np.array( B3_list )
-
-basis = [ B0, B1, B2, B3 ]
-
-dimensionBasis = [ B0.size,
-                   B1.shape[0],
-                   B2.shape[0],
-                   B3.shape[0] ]
-
-#
 # constraints for the T_p structure (need to be improved)
 array_index = 0
 entry_index = 1
@@ -209,64 +257,6 @@ allow_index = 2
 mark_index  = 3
 basis_index = 4
 
-######################################
-###### ----------> Auxiliary functions
-######################################
-
-def allow_time ( path, dim):
-
-    if dim == 0:
-        return 0
-
-    path_size = path.size
-
-    distance = []
-
-    find_indexes = np.arange( path_size )[ path == 1 ]
-
-    for i in find_indexes:
-        j = 0
-        while j < dim:
-            distance.append( sqrt( sum( (X[basis[dim][i][j]] - X[basis[dim][i][j+1]] )**2) ) )
-            j += 1
-
-        ## j = 0
-        ## while j <= dim:
-        ##     distance.append( sqrt( sum( X[ path[i] ] - X[ path[i+1] ] )**2 )  )
-        ##     i += 1
-
-    #print( distance )
-    return max( distance )
-
-def entry_time( path, dim, index_base ):
-
-    if dim == 0:
-        return 0
-    elif dim == 1:
-        return allow_time( path, dim )
-    else:
-        aux = [ allow_time( path, dim ) ]
-
-
-        aux_basis = basis[ dim ][ path == 1  ][0]
-        print('oi')
-        print( aux_basis )
-        i = 0
-
-        aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
-        while i <= dim:
-            aux_index = [ x != i for x in range(dim+1) ]
-
-
-            for j in range( dimensionBasis[ dim - 1 ] ):
-                if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
-                    aux_path[j] = 1
-            i += 1
-
-        aux.append( allow_time( aux_path, dim -1 ) )
-
-
-        return max( aux )
 
 
 ###################################
