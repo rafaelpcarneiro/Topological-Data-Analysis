@@ -242,41 +242,58 @@ class PPH:
         return max( distance )
 
 
-    def entry_time(self, path, dim, index_base ):
+    def entry_time(self, path_vector, path_dim, index_base ):
 
-        if dim == 0:
+        if path_dim == 0:
             return 0
-        elif dim == 1:
-            return allow_time( path, dim )
+
+        elif path_dim == 1:
+            return self.allow_time( path_vector, path_dim )
+
         else:
-            aux = [ allow_time( path, dim ) ]
+            distance = [ self.allow_time( path_vector, path_dim ) ]
+
+            # Finding the basis vectors that generate
+            # the vector path_vector.
+            basis_that_generate_path_vector = (self.basis[ path_dim ])[ path_vector == 1 ]
+
+            # Now we will apply the boundary transformation
+            # d = sum_{j=0}^{path_dim} (-1)^j [a_0, a_1, ..., â_j, ...]
+
+            # Taking
+            #   path_vector = sum_i sigma_i
+            # we will take the allow times of each d(sigma_i),
+            # wth d() the boundary function
+
+            for sigma_i in basis_that_generate_path_vector:
+                i = 0
+                while i <= path_dim:
+                    aux_index = [ x != i for x in range(path_dim + 1) ]
+
+                    # Now we will write sigma_i[ aux_index ] as
+                    # a linear combination of the basis vectors of
+                    # dimensionpath_dim - 1
+                    # NOTATION:
+                    #      aux_path := sigma_i[ aux_index ]
+                    aux_path = np.zeros( path_dim - 1 )
+                    for j in range( self.basis_dim[ path_dim - 1 ] ):
+                        if np.all( self.basis[path_dim-1][j] == sigma_i[ aux_index ]):
+                            aux_path[j] = 1
 
 
-            aux_basis = basis[ dim ][ path == 1  ][0]
-            print('oi')
-            print( aux_basis )
-            i = 0
+                    distance.append( self.allow_time( aux_path, dim -1 ) )
+                    i += 1
 
-            aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
-            while i <= dim:
-                aux_index = [ x != i for x in range(dim+1) ]
+            return max( distance )
 
 
-                for j in range( dimensionBasis[ dim - 1 ] ):
-                    if np.all( basis[dim-1][j] == aux_basis[ aux_index ]):
-                        aux_path[j] = 1
-                i += 1
-
-            aux.append( allow_time( aux_path, dim -1 ) )
-
-
-            return max( aux )
-# constraints for the T_p structure (need to be improved)
-array_index = 0
-entry_index = 1
-allow_index = 2
-mark_index  = 3
-basis_index = 4
+       
+#### constraints for the T_p structure (need to be improved)
+###array_index = 0
+###entry_index = 1
+###allow_index = 2
+###mark_index  = 3
+###basis_index = 4
 
 
 
@@ -284,134 +301,134 @@ basis_index = 4
 ###### ---------> Tp structure
 ###### (Obs: it could be defined as a class here)
 ###################################
-
-T_p = []
-i = 0
-
-while i <= max_dimension_studied + 1:
-    j   = 0
-
-    # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
-    T_i = []
-
-    while j < dimensionBasis[ i ]:
-        aux = np.zeros( dimensionBasis[i] )
-        aux[j] = 1
-
-        T_i.append( [ aux, entry_time( aux, i, j ), allow_time( aux, i ), False, j] )
-        j += 1
-
-    i += 1
-    T_p.append( T_i )
-
-
-#############################################################
-### -----> Sorting the structures T_p and basis in agreement
-###        with the allow times.
-#############################################################
-
-for i in range( len( T_p ) ):
-    T_p[i].sort( key = lambda x: x[ allow_index ])
-
-    aux_index = [x[basis_index] for x in T_p[i]]
-    basis_i_copy = basis[i].copy()
-
-    for j in range( dimensionBasis[ i ] ):
-        basis[i][j] = basis_i_copy[ aux_index[j] ]
-
-
-###########################################################
-####### --------> Computing the persistence path diagram
-###########################################################
-
-def BasisChange( an_array, dim ):
-
-    print('e aqui?')
-    p = dim # is dim really necessary or is implicit?
-
-    #u = np.zeros( dimensionBasis[p - 1] )
-    #for i in range( an_array.size ):
-    aux_basis = basis[ dim ][ an_array == 1  ][0]
-    i = 0
-    #aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
-    u = np.zeros( dimensionBasis[ dim - 1 ] )
-    while i <= dim:
-        aux_index = [ x != i for x in range(dim+1) ]
-
-
-        for j in range( dimensionBasis[ dim - 1 ] ):
-            if np.all( basis[dim-1][j] == aux_basis[ aux_index ]) and T_p[dim-1][j][mark_index] == False:
-                u[j] = 1
-        i += 1
-    #aux_index = [ x != i for x in range( an_array.size ) ]
-    #aux_array =  an_array[ aux_index ]
-    #print('dim, aux_array')
-    #print(dim, aux_array)
-
-    #for j in range( dimensionBasis[ p - 1 ] ):
-    #    if np.all( aux_array == basis[p][j] ) and  T_p[p - 1][j][mark_index] == False:
-    #        u[j] = 1
-
-
-
-
-    print(u)
-   
-    while np.all( u != 0 ):
-        print('chegou aqui?\n')
-        aux_sigma     = np.arange( u.size )
-        aux_index_eq1 = (aux_sigma[ u == 1 ])
-
-
-        aux_index_max = aux_index_eq1.max() # equivalent to i in the paper
-        sigma = basis[ p -1 ][aux_index_max]
-
-        et = max( [allow_time(an_array, p), allow_time(sigma, p-1)] )
-
-        if  T_p[p - 1][ aux_index_max ][ array_index ][aux_index_max] == 0 :
-            break
-
-        u_next = u ^ T_p[ p-1 ][ aux_index_max ][ array_index ]
-
-
-    return [u_next, aux_index_map, et]
-
-
-Pers = [ [], [], [] ]
-
-
-for p in range( max_dimension_studied + 1): # max_dimension_studied + 1
-                                            # because range returns
-                                            # a interval like [a,b)
-
-    j = 0
-    print('aui000')
-    while j < dimensionBasis[ p + 1 ]:
-        return_BasisChange = BasisChange( basis[p+1][j], p+1 )
-        print('aqui')
-        print(return_BasisChange)
-
-        u = return_BasisChange[0]
-        i = return_BasisChange[1]
-        et = return_BasisChange[2]
-
-        if np.all( u == 0 ):
-            T_p[ p + 1 ][j][mark_index] = True
-
-        else:
-            T_p[p][i][ array_index ] = u
-            T_p[p][i][ entry_index ] = et
-
-            Pers[p].append( [T_p[p][i][entry_index], et ] )
-
-        j += 1
-
-    j = 0
-    while j < dimensionBasis[ p ]:
-        if T_p[ p ][j][ mark_index ] == True and \
-           np.all( T_p_[ p ][j][ array_index ] == 0):
-            Pers[p].append( [T_p[p][j][ entry_index ], np.inf] )
-
-        j += 1
-
-print( Pers )
+### 
+###  T_p = []
+###  i = 0
+###
+###  while i <= max_dimension_studied + 1:
+###      j   = 0
+###
+###      # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
+###      T_i = []
+###
+###      while j < dimensionBasis[ i ]:
+###          aux = np.zeros( dimensionBasis[i] )
+###          aux[j] = 1
+###
+###          T_i.append( [ aux, entry_time( aux, i, j ), allow_time( aux, i ), False, j] )
+###          j += 1
+###
+###      i += 1
+###      T_p.append( T_i )
+###
+###
+###  #############################################################
+###  ### -----> Sorting the structures T_p and basis in agreement
+###  ###        with the allow times.
+###  #############################################################
+###
+###  for i in range( len( T_p ) ):
+###      T_p[i].sort( key = lambda x: x[ allow_index ])
+###
+###      aux_index = [x[basis_index] for x in T_p[i]]
+###      basis_i_copy = basis[i].copy()
+###
+###      for j in range( dimensionBasis[ i ] ):
+###          basis[i][j] = basis_i_copy[ aux_index[j] ]
+###
+###
+###  ###########################################################
+###  ####### --------> Computing the persistence path diagram
+###  ###########################################################
+###
+###  def BasisChange( an_array, dim ):
+###
+###      print('e aqui?')
+###      p = dim # is dim really necessary or is implicit?
+###
+###      #u = np.zeros( dimensionBasis[p - 1] )
+###      #for i in range( an_array.size ):
+###      aux_basis = basis[ dim ][ an_array == 1  ][0]
+###      i = 0
+###      #aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
+###      u = np.zeros( dimensionBasis[ dim - 1 ] )
+###      while i <= dim:
+###          aux_index = [ x != i for x in range(dim+1) ]
+###
+###
+###          for j in range( dimensionBasis[ dim - 1 ] ):
+###              if np.all( basis[dim-1][j] == aux_basis[ aux_index ]) and T_p[dim-1][j][mark_index] == False:
+###                  u[j] = 1
+###          i += 1
+###      #aux_index = [ x != i for x in range( an_array.size ) ]
+###      #aux_array =  an_array[ aux_index ]
+###      #print('dim, aux_array')
+###      #print(dim, aux_array)
+###
+###      #for j in range( dimensionBasis[ p - 1 ] ):
+###      #    if np.all( aux_array == basis[p][j] ) and  T_p[p - 1][j][mark_index] == False:
+###      #        u[j] = 1
+###
+###
+###
+###
+###      print(u)
+###
+###      while np.all( u != 0 ):
+###          print('chegou aqui?\n')
+###          aux_sigma     = np.arange( u.size )
+###          aux_index_eq1 = (aux_sigma[ u == 1 ])
+###
+###
+###          aux_index_max = aux_index_eq1.max() # equivalent to i in the paper
+###          sigma = basis[ p -1 ][aux_index_max]
+###
+###          et = max( [allow_time(an_array, p), allow_time(sigma, p-1)] )
+###
+###          if  T_p[p - 1][ aux_index_max ][ array_index ][aux_index_max] == 0 :
+###              break
+###
+###          u_next = u ^ T_p[ p-1 ][ aux_index_max ][ array_index ]
+###
+###
+###      return [u_next, aux_index_map, et]
+###
+###
+###  Pers = [ [], [], [] ]
+###
+###
+###  for p in range( max_dimension_studied + 1): # max_dimension_studied + 1
+###                                              # because range returns
+###                                              # a interval like [a,b)
+###
+###      j = 0
+###      print('aui000')
+###      while j < dimensionBasis[ p + 1 ]:
+###          return_BasisChange = BasisChange( basis[p+1][j], p+1 )
+###          print('aqui')
+###          print(return_BasisChange)
+###
+###          u = return_BasisChange[0]
+###          i = return_BasisChange[1]
+###          et = return_BasisChange[2]
+###
+###          if np.all( u == 0 ):
+###              T_p[ p + 1 ][j][mark_index] = True
+###
+###          else:
+###              T_p[p][i][ array_index ] = u
+###              T_p[p][i][ entry_index ] = et
+###
+###              Pers[p].append( [T_p[p][i][entry_index], et ] )
+###
+###          j += 1
+###
+###      j = 0
+###      while j < dimensionBasis[ p ]:
+###          if T_p[ p ][j][ mark_index ] == True and \
+###             np.all( T_p_[ p ][j][ array_index ] == 0):
+###              Pers[p].append( [T_p[p][j][ entry_index ], np.inf] )
+###
+###          j += 1
+###
+###  print( Pers )
