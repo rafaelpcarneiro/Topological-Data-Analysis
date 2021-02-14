@@ -22,11 +22,13 @@ def generating_all_regular_paths_dim_p( B_i, network_set_size ):
     size_B_next = B_i.shape[0] * (network_set_size - 1 )
     B_next = np.zeros( (size_B_next, B_i.shape[1] + 1) )
 
+    l = 0
     for i in range( B_i.shape[0] ):
         for j in range( network_set_size ):
             if B_i[ i, -1 ] != j:
-                B_next[i, 0:B_i.shape[0] ] = B_i[i,:]
-                B_next[i, -1 ] = j
+                B_next[l, 0:B_i.shape[1] ] = B_i[i,:]
+                B_next[l, -1 ] = j
+                l += 1
 
     return B_next
 
@@ -108,15 +110,38 @@ class PPH:
                        In other words:
                        basis_dim := [ basis[0].shape[0],
                                       basis[1].shape[0], ... ]
+
+          + T_p : a list that looks like
+                  T_p := [ T_p_0, T_p_1, ..., T_p_{self.pph_dim} ]
+                  where T_p_0, T_p_1, ..., T_p_{self.pph_dim} are
+                  are lists so, lets say for the index i, we will
+                  have
+                      T_p_i = [ [v_0, et( v_0 ), at( v_0 ), marked_or_not,0],
+                                [v_1, et( v_1 ), at( v_1 ), marked_or_not,1],
+                                [v_2, et( v_2 ), at( v_2 ), marked_or_not,2],
+                                                 .
+                                                 .
+                                                 .
+                              ],
+                  where v_0, v_1, v_2, ... are vectors of the
+                  vector space of dimension dim( basis[i] ) and,
+                  eventually, at the the first time T_p will be created, these
+                  vectors will be the elements of the basis[i]. Also,
+                  et(v_0), et(v_1), et(v_2) stands for the entry time
+                  of such vectors as well al(v_0), al(v_1), al(v_2)
+                  stands for their allow times. Finnaly marked_or_not register
+                  if the vectors are pivots and the last value is a copy of the index
+                  of the base vector that has created its entries.
         """
 
         self.pph_dim   = pph_dim
-        self.basis =     []
+        self.basis     = []
         self.basis_dim = []
+        self.T_p       = []
 
         if network_set.size != 0:
             self.network_set = network_set
-            self.network_set_size = network_set.size
+            self.network_set_size = network_set.shape[0]
 
         else:
             print( "Please the network_set cannot be the empty set\n." )
@@ -131,6 +156,13 @@ class PPH:
         else:
             print( "Please the network_weight must be a square matrix and must not be empty\n." )
             return 0
+
+        #### constraints for the T_p structure indexes
+        self.ARRAY_INDEX = 0
+        self.ENTRY_INDEX = 1
+        self.ALLOW_INDEX = 2
+        self.MARK_INDEX  = 3
+        self.BASIS_INDEX = 4
 
 
     def Basis_of_the_vector_spaces_spanned_by_regular_paths(self):
@@ -171,12 +203,13 @@ class PPH:
         This is merely a combinatorial task!
         """
 
-        self.basis.append( np.zeros(self.network_set_size, 1) )
-        for i in range( self.network_set ):
+        (self.basis).append( np.zeros( (self.network_set_size, 1) ) )
+
+        for i in range( self.network_set_size ):
             self.basis[0][i,0] = i
 
-        i = 1
-        while i <= self.pph_dim + 1:
+        i = 0
+        while i < self.pph_dim + 1:
             self.basis.append( generating_all_regular_paths_dim_p( self.basis[i], self.network_set_size ) )
             i += 1
 
@@ -190,7 +223,8 @@ class PPH:
         """
         i = 0
         while i <= self.pph_dim + 1:
-           self.basis_dim.append( self.basis.shape[0] )
+           self.basis_dim.append( self.basis[i].shape[0] )
+           i += 1
 
 
     def allow_time (self, path_vector, path_dim):
@@ -236,13 +270,13 @@ class PPH:
             # now we will run through the the vertices of the path sigma_i and we will
             # store the time needed for the edges to appear.
             while j < path_dim:
-                distance.append( self.network_weight( sigma_i[j], sigma_i[j+1] ) )
+                distance.append( self.network_weight[ int(sigma_i[j]) , int(sigma_i[j+1]) ] )
                 j += 1
 
         return max( distance )
 
 
-    def entry_time(self, path_vector, path_dim, index_base ):
+    def entry_time(self, path_vector, path_dim ):
 
         if path_dim == 0:
             return 0
@@ -275,68 +309,60 @@ class PPH:
                     # dimensionpath_dim - 1
                     # NOTATION:
                     #      aux_path := sigma_i[ aux_index ]
-                    aux_path = np.zeros( path_dim - 1 )
+                    aux_path = np.zeros( self.basis_dim[ path_dim - 1 ] )
                     for j in range( self.basis_dim[ path_dim - 1 ] ):
                         if np.all( self.basis[path_dim-1][j] == sigma_i[ aux_index ]):
                             aux_path[j] = 1
 
 
-                    distance.append( self.allow_time( aux_path, dim -1 ) )
+
+
+                    if np.any( aux_path != 0 ):
+                        distance.append( self.allow_time( aux_path, path_dim -1 ) )
                     i += 1
 
             return max( distance )
 
 
-       
-#### constraints for the T_p structure (need to be improved)
-###array_index = 0
-###entry_index = 1
-###allow_index = 2
-###mark_index  = 3
-###basis_index = 4
+    def generating_T_p(self):
+        i = 0
+
+        while i <= self.pph_dim + 1:
+            j   = 0
+
+            # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
+            T_i = []
+
+            while j < self.basis_dim[ i ]:
+                # writing the vector self.basis[i][j] in terms of the
+                # basis
+                aux = np.zeros( self.basis_dim[i] )
+                aux[j] = 1
+
+                T_i.append( [ aux, \
+                              self.entry_time( aux, i ),\
+                              self.allow_time( aux, i ), False, j] )
+                j += 1
+
+            i += 1
+            self.T_p.append( T_i )
 
 
+    def sorting_T_p_and_basis_by_their_allow_times(self):
+        """
+        Sorting the structures T_p and basis in agreement
+        with the allow times.
+        """
+        for i in range( self.pph_dim ):
+            self.T_p[i].sort( key = lambda x: x[ self.ALLOW_INDEX ])
 
-###################################
-###### ---------> Tp structure
-###### (Obs: it could be defined as a class here)
-###################################
-### 
-###  T_p = []
-###  i = 0
-###
-###  while i <= max_dimension_studied + 1:
-###      j   = 0
-###
-###      # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
-###      T_i = []
-###
-###      while j < dimensionBasis[ i ]:
-###          aux = np.zeros( dimensionBasis[i] )
-###          aux[j] = 1
-###
-###          T_i.append( [ aux, entry_time( aux, i, j ), allow_time( aux, i ), False, j] )
-###          j += 1
-###
-###      i += 1
-###      T_p.append( T_i )
-###
-###
-###  #############################################################
-###  ### -----> Sorting the structures T_p and basis in agreement
-###  ###        with the allow times.
-###  #############################################################
-###
-###  for i in range( len( T_p ) ):
-###      T_p[i].sort( key = lambda x: x[ allow_index ])
-###
-###      aux_index = [x[basis_index] for x in T_p[i]]
-###      basis_i_copy = basis[i].copy()
-###
-###      for j in range( dimensionBasis[ i ] ):
-###          basis[i][j] = basis_i_copy[ aux_index[j] ]
-###
-###
+            aux_index = [ x[self.BASIS_INDEX] for x in self.T_p[i] ]
+            basis_i_copy = self.basis[i].copy()
+
+            for j in range( self.basis_dim[ i ] ):
+                self.basis[i][j] = basis_i_copy[ aux_index[j] ]
+
+
 ###  ###########################################################
 ###  ####### --------> Computing the persistence path diagram
 ###  ###########################################################
