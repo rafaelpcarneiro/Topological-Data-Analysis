@@ -462,7 +462,7 @@ class PPH:
         return u, sigma_max_index, et
 
 
-    def ComputePPH(self):
+    def ComputePPH(self, print_algorithm_running_steps = False ):
 
         # ----> Start by initializing all the enviroment needed for the calculations
         self.Basis_of_the_vector_spaces_spanned_by_regular_paths()
@@ -521,3 +521,191 @@ class PPH:
                     self.Pers[p].append( [self.entry_time(basis_p_j, p), np.inf] )
 
                 j += 1
+
+
+    def BasisChange_printing_step_by_step(self, path_vector, path_dim ):
+
+        # Calculating the vector
+        #    u  = d( path_vector ),
+        # where d() is the boundary transformation.
+        # Here u is going to have dimension path_dim - 1.
+
+        # Here path_vector_indexes is a numpy array
+        # storing the basis vectors that generate path_vector
+        # and are not marked
+        aux_basis = self.basis[ path_dim ][ path_vector == 1  ]
+        u         = np.zeros( self.basis_dim[ path_dim - 1 ] )
+
+        for basis in aux_basis:
+            # we will calculate the boundary transformation of
+            # each basis.
+
+            i = 0
+            while i <= path_dim:
+                boundary_indexes =  [ x != i  for x in range( path_dim + 1 ) ]
+                l = 0
+                for sigma in self.basis[path_dim - 1]:
+                    if np.all( sigma == basis[ boundary_indexes ] ):
+                        u[ l ] = (u[l] +  1) % 2
+
+                    l += 1
+
+                i += 1
+
+        self.print_vector(u, path_dim - 1, 'u = d(path_vector) = ')
+
+        # Removing unmarked terms from u (pivots)
+        i = 0
+        while i < self.basis_dim[ path_dim - 1 ]:
+            if self.Marked[path_dim - 1 ][i] == 0:
+                u[i] = 0
+            i += 1
+
+        self.print_vector(u, path_dim - 1, 'u (without unmarked terms) = ')
+
+        et               = 0
+        sigma_max_index  = 0 #np.arange( self.basis_dim[ path_dim - 1 ] )
+
+        while np.any( u != 0 ):
+            sigma_max_index_aux  = np.arange( self.basis_dim[ path_dim - 1 ] )
+            sigma_arg_max        = np.zeros( self.basis_dim[ path_dim - 1 ] )
+
+            sigma_max_index  = sigma_max_index_aux[ u == 1 ][-1]
+            sigma_arg_max[sigma_max_index] = 1
+
+            et = max( [self.allow_time( path_vector, path_dim ), self.allow_time( sigma_arg_max, path_dim - 1 ) ] )
+
+            self.print_vector(sigma_arg_max, path_dim - 1, 'sigma_arg_max = ')
+            print( 'sigma_max_index = {}, et ={}'.format(sigma_max_index, et) )
+
+            if  self.is_T_p_dim_i_vector_j_empty( path_dim - 1, sigma_max_index ) == True:
+                print('T_p[{}][{}] is empty'.format(path_dim - 1, sigma_max_index))
+                break
+            #if  self.T_p[path_dim - 1][sigma_max_index][self.ARRAY_INDEX][sigma_max_index] == 0 : break
+
+
+            u = (u + self.T_p[ path_dim - 1 ][ sigma_max_index ][ self.ARRAY_INDEX ] ) % 2
+
+            self.print_vector(u, path_dim - 1, 'u = ')
+
+            print('Stop with the column reduction\n')
+        return u, sigma_max_index, et
+
+
+    def ComputePPH_printing_step_by_step(self):
+
+        # ----> Start by initializing all the enviroment needed for the calculations
+        self.Basis_of_the_vector_spaces_spanned_by_regular_paths()
+        self.dimensions_of_each_vector_space_spanned_by_regular_paths()
+        self.sorting_the_basis_by_their_allow_times()
+        self.initializing_Marking_basis_vectors()
+        self.generating_T_p()
+
+
+        # ----> Now start with the algorithm proposed by the paper referenced
+        #       at the beginning of this file.
+
+        for i in range( self.pph_dim + 1 ):
+            self.Pers.append( [] )
+
+        for p in range( self.pph_dim + 1): # max_dimension_studied + 1
+                                           # because range returns
+                                           # a interval like [a,b)
+
+
+            j = 0
+            while j < self.basis_dim[ p + 1 ]:
+                str_algorithm_step = 'Algorithm step: dim = {}, index = {}\n-----------------------------------------\n'
+                print( str_algorithm_step.format( p, j) )
+
+                self.print_Marked()
+                self.print_T_p()
+
+                path_vector_of_basis = np.zeros( self.basis_dim[ p+1 ] )
+                path_vector_of_basis[j] = 1
+
+                self.print_vector(path_vector_of_basis, p, 'For the basis vector: ' )
+
+                print("Calculating the column reduction!")
+
+                # down below the variable's names (u,i,et) are following the paper's notation
+                u, i, et = self.BasisChange_printing_step_by_step( path_vector_of_basis, p + 1 )
+
+                if np.all( u == 0 ):
+                    self.marking_vector_basis( p + 1, j )
+                    print('Vector u is 0 thus nothing is left to be done at this iteration')
+
+                else:
+
+
+                    self.T_p[p][i][ self.ARRAY_INDEX ] = u
+                    self.T_p[p][i][ self.ENTRY_INDEX ] = et
+                    self.T_p[p][i][ self.EMPTY_INDEX ] = False
+
+                    basis_p_i = np.zeros( self.basis_dim[p] )
+                    basis_p_i[i] = 1
+
+                    print('checking')
+                    print( self.allow_time( path_vector_of_basis, p+1 ) == self.allow_time( basis_p_i, p ))
+
+
+                    self.Pers[p].append( [self.entry_time( basis_p_i, p ), et ] )
+
+                    print('Vector u is not 0 thus we have the interval: [{}, {}]'.format(self.entry_time( basis_p_i, p ), et))
+
+                j += 1
+
+            print('\nChecking for topological features that last up to infinity\n')
+            self.print_Marked()
+            self.print_T_p()
+
+            j = 0
+            while j < self.basis_dim[ p ]:
+                #if self.T_p[ p ][j][ self.MARK_INDEX ] == True and np.all( self.T_p[ p ][j][ self.ARRAY_INDEX ] == 0):
+
+                #if self.T_p[ p ][j][ self.MARK_INDEX ] == True and  self.is_empty( self.T_p[ p ][j][ self.ARRAY_INDEX ], p ) == True:
+                if self.Marked[ p ][j] == 1 and  self.is_T_p_dim_i_vector_j_empty( p, j ) == True:
+                    basis_p_j = np.zeros( self.basis_dim[p])
+                    basis_p_j[j] = 1
+
+                    print('Temos que Marked[{}][{}] esta marcado e T_p[{}][{}] esta vazio'.format(p,j,p,j))
+                    print('Adicionar  o intervalo: [{}, {}]'.format(self.entry_time(basis_p_j, p), np.inf))
+                    self.Pers[p].append( [self.entry_time(basis_p_j, p), np.inf] )
+
+                j += 1
+
+
+    def print_Marked(self):
+
+        print('Marked elements')
+        str = [ 'dim= {:<3} ->  ' + x.size * '{:<3.0f}' for x in self.Marked ]
+
+        for i in range( self.pph_dim + 2 ):
+            print( str[i].format(i, *self.Marked[i]) )
+
+
+    def print_T_p(self):
+
+        print('T_p elements')
+        for i in range( self.pph_dim + 2 ):
+            print('dim = {}\n'.format(i))
+
+            for j in range( self.basis_dim[i] ):
+                if self.is_T_p_dim_i_vector_j_empty( i, j ) == False:
+                    basis_elements = np.arange( self.basis_dim[i] )[ self.T_p[i][j][self.ARRAY_INDEX] == 1 ]
+                    str            = (basis_elements - 1) * 'v[{}] + ' + 'v[{}]'
+
+                    print( 'element {}: ' + str + ', et = {}'.format( j, *basis_elements.tolist(), self.T_p[i][j][self.ENTRY_INDEX] )  )
+
+
+    def print_vector(self, path_vector, path_dim, label_for_the_vector = 'u'):
+
+        vector_indexes = np.arange( self.basis_dim[ path_dim ] )
+
+        if vector_indexes.size == 0:
+            str = label_for_the_vector + ' = 0'
+            print(str)
+
+        else:
+            str = label_for_the_vector + ' = '+ (label_for_the_vector - 1) * 'v[{}] + ' + 'v[{}]'
+            print( str.format(*vector_indexes) )
