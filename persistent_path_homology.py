@@ -33,10 +33,7 @@ def generating_all_regular_paths_dim_p( B_i, network_set_size ):
     return B_next
 
 
-
-
-
-
+                                             
 #############################################
 ######## Main Class: PPH
 #############################################
@@ -114,30 +111,40 @@ class PPH:
           + T_p : a list that looks like
                   T_p := [ T_p_0, T_p_1, ..., T_p_{self.pph_dim} ]
                   where T_p_0, T_p_1, ..., T_p_{self.pph_dim} are
-                  are lists so, lets say for the index i, we will
+                  lists so, lets say for the index i, we will
                   have
-                      T_p_i = [ [v_0, et( v_0 ), at( v_0 ), marked_or_not,0],
-                                [v_1, et( v_1 ), at( v_1 ), marked_or_not,1],
-                                [v_2, et( v_2 ), at( v_2 ), marked_or_not,2],
+                      T_p_i = [ [v_0, et( v_0 ), at( v_0 ), empty_or_not],
+                                [v_1, et( v_1 ), at( v_1 ), empty_or_not],
+                                [v_2, et( v_2 ), at( v_2 ), empty_or_not],
                                                  .
                                                  .
                                                  .
                               ],
                   where v_0, v_1, v_2, ... are vectors of the
-                  vector space of dimension dim( basis[i] ) and,
-                  eventually, at the the first time T_p will be created, these
-                  vectors will be the elements of the basis[i]. Also,
+                  vector space of dimension dim( basis[i] ). Also,
                   et(v_0), et(v_1), et(v_2) stands for the entry time
-                  of such vectors as well al(v_0), al(v_1), al(v_2)
-                  stands for their allow times. Finnaly marked_or_not register
-                  if the vectors are pivots and the last value is a copy of the index
-                  of the base vector that has created its entries.
+                  of such vectors. Finnaly, the variable named
+                  empty_or_not registers wheter T_p_i[j]  is empty or not,
+                  for j in 0, 1, 2, ..., self.basis_dim[i].
+
+          + Marked: a list
+                       Marked := [Marked0, Marked1, Marked_{self.pph_dim}]
+                    where each element Marked0, Marked1, Marked_{self.pph_dim} is
+                    a numpy.array that stores wheter a basis vector is marked or not.
+
+          + Pers : a list consisting of the persistent diagrams of dimensions 0, 1, ..., self.pph_dim.
+                   That is:
+                            Pers = [ Pers0, Pers1, ..., Pers_{self.pph_dim} ],
+                   where Pers0, Pers1, ..., Pers_{self.pph_dim} are lists whose elements are the intervals of
+                   the persistent diagrams.
         """
 
         self.pph_dim   = pph_dim
         self.basis     = []
         self.basis_dim = []
         self.T_p       = []
+        self.Marked    = []
+        self.Pers      = []
 
         if network_set.size != 0:
             self.network_set = network_set
@@ -160,9 +167,7 @@ class PPH:
         #### constraints for the T_p structure indexes
         self.ARRAY_INDEX = 0
         self.ENTRY_INDEX = 1
-        self.ALLOW_INDEX = 2
-        self.MARK_INDEX  = 3
-        self.BASIS_INDEX = 4
+        self.EMPTY_INDEX = 2
 
 
     def Basis_of_the_vector_spaces_spanned_by_regular_paths(self):
@@ -314,14 +319,47 @@ class PPH:
                         if np.all( self.basis[path_dim-1][j] == sigma_i[ aux_index ]):
                             aux_path[j] = 1
 
-
-
-
                     if np.any( aux_path != 0 ):
                         distance.append( self.allow_time( aux_path, path_dim -1 ) )
                     i += 1
 
             return max( distance )
+
+
+    def sorting_the_basis_by_their_allow_times(self):
+        """
+        Sorting the structures T_p and basis in agreement
+        with the allow times.
+        """
+        for i in range( self.pph_dim + 2):
+            basis_i_aux = []
+            for j in range( self.basis_dim[i] ):
+                basis_i_aux.append( [np.zeros( self.basis_dim[i] ), j] )
+                basis_i_aux[j][0][j] = 1
+
+            
+            basis_i_aux.sort( key = lambda x: self.allow_time( x[0], i ) )
+
+            basis_i_copy = self.basis[i].copy()
+
+            for j in range( self.basis_dim[ i ] ):
+                self.basis[i][j] = basis_i_copy[ basis_i_aux[j][1] ]
+
+
+    def initializing_Marking_basis_vectors(self):
+        i = 0
+        while i <= self.pph_dim + 1:
+            self.Marked.append( np.zeros( self.basis_dim[i]  ) )
+            i += 1
+
+        i = 0
+        while i < self.basis_dim[ 0 ]:
+            self.Marked[0][i] = 1
+            i+=1
+
+
+    def marking_vector_basis(self, vector_dim, vector_index):
+        self.Marked[vector_dim][vector_index] = 1
 
 
     def generating_T_p(self):
@@ -330,131 +368,156 @@ class PPH:
         while i <= self.pph_dim + 1:
             j   = 0
 
-            # T_i = [ v_i, et(v_i), at(v_i), mark, basis_index]
+            # T_i = [ v_i, et(v_i), at(v_i), mark ]
             T_i = []
 
             while j < self.basis_dim[ i ]:
                 # writing the vector self.basis[i][j] in terms of the
                 # basis
                 aux = np.zeros( self.basis_dim[i] )
-                aux[j] = 1
+                #aux[j] = 1
 
-                T_i.append( [ aux, \
-                              self.entry_time( aux, i ),\
-                              self.allow_time( aux, i ), False, j] )
+                T_i.append( [ aux,  0, True ] )
+
                 j += 1
 
             i += 1
             self.T_p.append( T_i )
 
 
-    def sorting_T_p_and_basis_by_their_allow_times(self):
+    def is_T_p_dim_i_vector_j_empty(self, dim, index):
         """
-        Sorting the structures T_p and basis in agreement
-        with the allow times.
+        Return wheter self.T_p[dim][index] is empty or not
         """
-        for i in range( self.pph_dim ):
-            self.T_p[i].sort( key = lambda x: x[ self.ALLOW_INDEX ])
-
-            aux_index = [ x[self.BASIS_INDEX] for x in self.T_p[i] ]
-            basis_i_copy = self.basis[i].copy()
-
-            for j in range( self.basis_dim[ i ] ):
-                self.basis[i][j] = basis_i_copy[ aux_index[j] ]
+        return self.T_p[dim][index][self.EMPTY_INDEX]
 
 
-###  ###########################################################
-###  ####### --------> Computing the persistence path diagram
-###  ###########################################################
-###
-###  def BasisChange( an_array, dim ):
-###
-###      print('e aqui?')
-###      p = dim # is dim really necessary or is implicit?
-###
-###      #u = np.zeros( dimensionBasis[p - 1] )
-###      #for i in range( an_array.size ):
-###      aux_basis = basis[ dim ][ an_array == 1  ][0]
-###      i = 0
-###      #aux_path = np.zeros( dimensionBasis[ dim - 1 ] )
-###      u = np.zeros( dimensionBasis[ dim - 1 ] )
-###      while i <= dim:
-###          aux_index = [ x != i for x in range(dim+1) ]
-###
-###
-###          for j in range( dimensionBasis[ dim - 1 ] ):
-###              if np.all( basis[dim-1][j] == aux_basis[ aux_index ]) and T_p[dim-1][j][mark_index] == False:
-###                  u[j] = 1
-###          i += 1
-###      #aux_index = [ x != i for x in range( an_array.size ) ]
-###      #aux_array =  an_array[ aux_index ]
-###      #print('dim, aux_array')
-###      #print(dim, aux_array)
-###
-###      #for j in range( dimensionBasis[ p - 1 ] ):
-###      #    if np.all( aux_array == basis[p][j] ) and  T_p[p - 1][j][mark_index] == False:
-###      #        u[j] = 1
-###
-###
-###
-###
-###      print(u)
-###
-###      while np.all( u != 0 ):
-###          print('chegou aqui?\n')
-###          aux_sigma     = np.arange( u.size )
-###          aux_index_eq1 = (aux_sigma[ u == 1 ])
-###
-###
-###          aux_index_max = aux_index_eq1.max() # equivalent to i in the paper
-###          sigma = basis[ p -1 ][aux_index_max]
-###
-###          et = max( [allow_time(an_array, p), allow_time(sigma, p-1)] )
-###
-###          if  T_p[p - 1][ aux_index_max ][ array_index ][aux_index_max] == 0 :
-###              break
-###
-###          u_next = u ^ T_p[ p-1 ][ aux_index_max ][ array_index ]
-###
-###
-###      return [u_next, aux_index_map, et]
-###
-###
-###  Pers = [ [], [], [] ]
-###
-###
-###  for p in range( max_dimension_studied + 1): # max_dimension_studied + 1
-###                                              # because range returns
-###                                              # a interval like [a,b)
-###
-###      j = 0
-###      print('aui000')
-###      while j < dimensionBasis[ p + 1 ]:
-###          return_BasisChange = BasisChange( basis[p+1][j], p+1 )
-###          print('aqui')
-###          print(return_BasisChange)
-###
-###          u = return_BasisChange[0]
-###          i = return_BasisChange[1]
-###          et = return_BasisChange[2]
-###
-###          if np.all( u == 0 ):
-###              T_p[ p + 1 ][j][mark_index] = True
-###
-###          else:
-###              T_p[p][i][ array_index ] = u
-###              T_p[p][i][ entry_index ] = et
-###
-###              Pers[p].append( [T_p[p][i][entry_index], et ] )
-###
-###          j += 1
-###
-###      j = 0
-###      while j < dimensionBasis[ p ]:
-###          if T_p[ p ][j][ mark_index ] == True and \
-###             np.all( T_p_[ p ][j][ array_index ] == 0):
-###              Pers[p].append( [T_p[p][j][ entry_index ], np.inf] )
-###
-###          j += 1
-###
-###  print( Pers )
+    def fill_T_p_dim_i_vecto_j(self, dim, index, u, et):
+        self.T_p[dim][index][ self.ARRAY_INDEX ] = u
+        self.T_p[dim][index][ self.ENTRY_INDEX ] = et
+        self.T_p[dim][index][ self.EMPTY_INDEX ] = False
+
+
+
+    ###########################################################
+    ####### --------> Computing the persistence path diagram
+    ###########################################################
+
+    def BasisChange(self, path_vector, path_dim ):
+
+        # Calculating the vector
+        #    u  = d( path_vector ),
+        # where d() is the boundary transformation.
+        # Here u is going to have dimension path_dim - 1.
+
+        # Here path_vector_indexes is a numpy array
+        # storing the basis vectors that generate path_vector
+        # and are not marked
+        aux_basis = self.basis[ path_dim ][ path_vector == 1  ]
+        u         = np.zeros( self.basis_dim[ path_dim - 1 ] )
+
+        for basis in aux_basis:
+            # we will calculate the boundary transformation of
+            # each basis.
+
+            i = 0
+            while i <= path_dim:
+                boundary_indexes =  [ x != i  for x in range( path_dim + 1 ) ]
+                l = 0
+                for sigma in self.basis[path_dim - 1]:
+                    if np.all( sigma == basis[ boundary_indexes ] ):
+                        u[ l ] = (u[l] +  1) % 2
+
+                    l += 1
+
+                i += 1
+
+        # Removing unmarked terms from u (pivots)
+        i = 0
+        while i < self.basis_dim[ path_dim - 1 ]:
+            if self.Marked[path_dim - 1 ][i] == 0:
+                u[i] = 0
+            i += 1
+
+
+        et               = 0
+        sigma_max_index  = 0 #np.arange( self.basis_dim[ path_dim - 1 ] )
+
+        while np.any( u != 0 ):
+            sigma_max_index_aux  = np.arange( self.basis_dim[ path_dim - 1 ] )
+            sigma_arg_max        = np.zeros( self.basis_dim[ path_dim - 1 ] )
+
+            sigma_max_index  = sigma_max_index_aux[ u == 1 ][-1]
+            sigma_arg_max[sigma_max_index] = 1
+
+            et = max( [self.allow_time( path_vector, path_dim ), self.allow_time( sigma_arg_max, path_dim - 1 ) ] )
+
+            if  self.is_T_p_dim_i_vector_j_empty( path_dim - 1, sigma_max_index ) == True:
+                break
+            #if  self.T_p[path_dim - 1][sigma_max_index][self.ARRAY_INDEX][sigma_max_index] == 0 : break
+
+
+            u = (u + self.T_p[ path_dim - 1 ][ sigma_max_index ][ self.ARRAY_INDEX ] ) % 2
+
+        return u, sigma_max_index, et
+
+
+    def ComputePPH(self):
+
+        # ----> Start by initializing all the enviroment needed for the calculations
+        self.Basis_of_the_vector_spaces_spanned_by_regular_paths()
+        self.dimensions_of_each_vector_space_spanned_by_regular_paths()
+        self.sorting_the_basis_by_their_allow_times()
+        self.initializing_Marking_basis_vectors()
+        self.generating_T_p()
+
+        # ----> Now start with the algorithm proposed by the paper referenced
+        #       at the beginning of this file.
+                 
+        for i in range( self.pph_dim + 1 ):
+            self.Pers.append( [] )
+
+        for p in range( self.pph_dim + 1): # max_dimension_studied + 1
+                                           # because range returns
+                                           # a interval like [a,b)
+
+            j = 0
+            while j < self.basis_dim[ p + 1 ]:
+                path_vector_of_basis = np.zeros( self.basis_dim[ p+1 ] )
+                path_vector_of_basis[j] = 1
+
+                u, i, et = self.BasisChange( path_vector_of_basis, p + 1 ) # following the paper's notation for these variables
+
+
+                if np.all( u == 0 ):
+                    self.marking_vector_basis( p + 1, j )
+
+                else:
+
+
+                    self.T_p[p][i][ self.ARRAY_INDEX ] = u
+                    self.T_p[p][i][ self.ENTRY_INDEX ] = et
+                    self.T_p[p][i][ self.EMPTY_INDEX ] = False
+
+                    basis_p_i = np.zeros( self.basis_dim[p] )
+                    basis_p_i[i] = 1
+
+                    print('checking')
+                    print( self.allow_time( path_vector_of_basis, p+1 ) == self.allow_time( basis_p_i, p ))
+
+                    self.Pers[p].append( [self.entry_time( basis_p_i, p ), et ] )
+
+                j += 1
+
+            j = 0
+            while j < self.basis_dim[ p ]:
+                #if self.T_p[ p ][j][ self.MARK_INDEX ] == True and np.all( self.T_p[ p ][j][ self.ARRAY_INDEX ] == 0):
+
+                #if self.T_p[ p ][j][ self.MARK_INDEX ] == True and  self.is_empty( self.T_p[ p ][j][ self.ARRAY_INDEX ], p ) == True:
+                if self.Marked[ p ][j] == 1 and  self.is_T_p_dim_i_vector_j_empty( p, j ) == True:
+                    basis_p_j = np.zeros( self.basis_dim[p])
+                    basis_p_j[j] = 1
+
+                    self.Pers[p].append( [self.entry_time(basis_p_j, p), np.inf] )
+
+                j += 1
