@@ -64,7 +64,7 @@ pph_X.ComputePPH_printing_step_by_step()
 ## TECHNICAL INFORMATION.
 ------------------------
 
-1) The algorithm proposed by the authors above do not
+1) The algorithm proposed by the authors down bellow do not
 work properly if we do not set the regular paths of
 dimension 0 to be marked. That is, it is mandatory to
 mark this regular paths otherwise the persistent features
@@ -73,12 +73,12 @@ it will lead to incorrect persistent diagrams.
 This can be noticed by checking the algorithm proposed
 by Afra Zomorodian and Gunnar Carlsson, namely
 Computing Persistent Homology, to calculate persistent
-homology. This paper (the pdf) can be found in the link:
-> [pdf of the paper](https://geometry.stanford.edu/papers/zc-cph-05/)
+homology. This paper can be found in the link:
+> [Computing Persistent Homology](https://geometry.stanford.edu/papers/zc-cph-05/) by the authors Afra Zomorodian and Gunnar Carlsson.
 
 2) The algorithm implemented here can be found
 at:
-> [paper pdf](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
+> [Persistent Path Homology of Directed Networks](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
 by the authors: Samir Chowdhury and Facundo Mémoli.
 
 3) The software used to write this python script
@@ -87,9 +87,9 @@ Emacs embedded with all functionalities of
 VIM. I really recommend using emacs with
 this framework. Down bellow I leave its github
 repository:
-> [Doom-Emacs](https://github.com/hlissner/doom-emacs)
+> [Doom-Emacs](https://github.com/hlissner/doom-emacs) An Emacs framework for the stubborn martian hacker (as the author says =D)
 
 4) This script has been tested using python3 on
 a Ubuntu machine and it will make use of the library **numpy**:
-> [Numpy](https://numpy.org/)
+> [Numpy](https://numpy.org/) Numerical computing tools for python
 
