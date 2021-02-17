@@ -46,10 +46,10 @@ which will be stored as one  atribute of **pph_X**,
 namely **pph_X.Pers**. This atribute **pph_X.Pers** will be a
 list containing all persistent path intervals. Each element of
 this list will look like:
-    + pph_X.Pers[0] is a list containing persistent path features of dimension 0;
-    + pph_X.Pers[1] is a list containing persistent path features of dimension 1;
-    + pph_X.Pers[2] is a list containing persistent path features of dimension 2;
-    + ...
+* pph_X.Pers[0] is a list containing persistent path features of dimension 0;
+* pph_X.Pers[1] is a list containing persistent path features of dimension 1;
+* pph_X.Pers[2] is a list containing persistent path features of dimension 2;
+* ...
 
 In case you wish to see the algorithm running step by step, you
 must call the method **ComputePPH_printing_step_by_step()**. For
