@@ -1,4 +1,88 @@
 #!/usr/bin/env python3
+# Author: Rafael Polli Carneiro
+# Date  : First semester of 2021
+#
+#
+# * IMPORTANT
+# -----------
+#   Here the field acting over the vector space is Z/2Z.
+#
+# * HOW TO USE THIS SCRIPT
+# -------------------------
+#   Given a network N = (X, A) where X represents the
+#   set of the points being studied at the graphs and
+#   A a matrix of the weights.
+#
+#   X is stored as a numpy array with shape satisfying
+#     + X.shape[0] ---> size of our data
+#     + X.shape[1] ---> dimension of the R^n space
+#
+#   A is stored as a numpy array with shape
+#      A.shape == (X.shape[0], X.shape[0]),
+#   and A must satisfy:
+#      + A[x,y] >= 0            for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1};
+#      + A[x,y] == 0 iff x = y, for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1}.
+#
+#
+#   Then, if one wants to calculate the persistent path homology of
+#   dimensions 0, 1, 2, ..., p (with p >= 0), it has to do the following
+#   in a python interpreter (or in a scriptm it is up to you)
+#
+#   >>> from persistent_path_homology import *
+#   >>> pph_X = PPH(X, A)
+#   >>> pph_X.ComputePPH()
+#   >>> print(pph.Pers)
+#
+#   Above pph_X is an object of the class PPH and the method
+#   ComputePPPH() will calculate the persistent path homology
+#   and will store at the atribute of pph_X, pph_X.Pers, a list
+#   containing all persistent path intervals, where
+#     pph_X.Pers[0] is a list containing persistent path features of dimension 0
+#     pph_X.Pers[1] is a list containing persistent path features of dimension 1
+#     pph_X.Pers[2] is a list containing persistent path features of dimension 2
+#                              .
+#                              .
+#                              .
+#
+#  In case you want to see step by step of the algorithm working you
+#  must call the method ComputePPH_printing_step_by_step(). For
+#  instance:
+#
+#   >>> from persistent_path_homology import *
+#   >>> pph_X = PPH(X, A)
+#   >>> pph_X.ComputePPH_printing_step_by_step()
+#
+# * TECHNICAL INFORMATION.
+# ------------------------
+#
+# 1) The algorithm proposed by the authors above do not
+#    work properly if we do not set the regular paths of
+#    dimension 0 to be marked. That is, it is mandatory to
+#    mark this regular paths otherwise the persistent features
+#    of dimension 0 won't be detected by the algorithm and also
+#    it will lead to incorrect persistent diagrams.
+#    This can be noticed by checking the algorithm proposed
+#    by Afra Zomorodian and Gunnar Carlsson, namely
+#    Computing Persistent Homology, to calculate persistent
+#    homology. This paper (the pdf) can be found in the link:
+#    ---> https://geometry.stanford.edu/papers/zc-cph-05/
+#
+# 2) The algorithm implemented here can be found
+#    here:
+#    ---> https://epubs.siam.org/doi/10.1137/1.9781611975031.75
+#    by the authors: Samir Chowdhury and Facundo Mémoli.
+#
+# 3) The software used to write this python script
+#    was the magnificent Doom-Emacs, which is an
+#    Emacs embedded with all functionalities of
+#    VIM. I really recommend using emacs with
+#    this framework. Down bellow I leave its github
+#    repository:
+#    ---> https://github.com/hlissner/doom-emacs
+#
+# 4) This script has been tested using python3 on
+#    a Ubuntu machine.
+
 
 import numpy as np
 from math import *
