@@ -28,7 +28,7 @@ is done is given by some key words labelled in bold face
 and enclosed with brackets.
 
 1. **[Persistent Path Homology]**: Based on the paper, 
-**Persistent Path Homology of Directed Networks** from
+[**Persistent Path Homology of Directed Networks**](https://arxiv.org/abs/1701.00565) from
 the authors Samir Chowdhury and Facundo Mémoli, I will implement
 in python their algorithm responsible to calculate Persistent Path Homology 
 from a network N=(X,A). This is done at the folder:
