@@ -15,15 +15,15 @@ Here the field acting over the vector space is Z/2Z.
 
 Given a network *N = (X, A)*, where *X* represents a
 set of points (a subset of R^n) satisfying
-> *X* is a *numpy array** with shape:
->     X.shape[0] ---> size of our data
->     X.shape[1] ---> dimension of the R^n space
-and *A* a matrix of the weights.
-*A* is stored as a *numpy array** with shape
-    A.shape == (X.shape[0], X.shape[0]),
+- *X* is a *numpy array** with shape:
+- X.shape[0] ---> size of our data
+- X.shape[1] ---> dimension of the R^n space
+and *A* a matrix of the weights such that
+- *A* is a *numpy array** with shape:
+- A.shape == (X.shape[0], X.shape[0]),
 and A must satisfy the conditions:
-    + A[x,y] >= 0            for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1};
-    + A[x,y] == 0 iff x = y, for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1}.
+- A[x,y] >= 0 for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1};
+- A[x,y] == 0 iff x = y, for all x,y in {0, 1, 2, 3, ..., X.shape[0] - 1}.
 
 
 Then, if someone wants to calculate the persistent path homology of
