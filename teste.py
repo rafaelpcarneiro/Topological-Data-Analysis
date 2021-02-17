@@ -10,16 +10,20 @@ PPH_DIM   = 1
 def euclidean_distance( x, y ):
     #x, y numpy arrays
 
-    return sum(x-y)**2
+    return sum( (x-y)**2 )
 
 np.random.seed(500)
 network_set = np.random.uniform( 0,1, (DATA_SIZE, 1) )
 
-network_weight = np.zeros( (DATA_SIZE, DATA_SIZE) )
-for i in range( DATA_SIZE ):
-    for j in range( DATA_SIZE ):
-        network_weight[i,j] = euclidean_distance( network_set[i], \
-                                                  network_set[j])
+##### symmetric case
+# network_weight = np.zeros( (DATA_SIZE, DATA_SIZE) )
+# for i in range( DATA_SIZE ):
+#     for j in range( DATA_SIZE ):
+#         network_weight[i,j] = euclidean_distance( network_set[i], \
+
+
+##### network_weight with random weights
+network_weight = np.random.uniform(0,1,  (DATA_SIZE, DATA_SIZE) )
 
 test1 = PPH( network_set, network_weight, PPH_DIM )
 
