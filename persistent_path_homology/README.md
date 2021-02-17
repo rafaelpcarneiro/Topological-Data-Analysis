@@ -31,10 +31,13 @@ Then, if someone wants to calculate the persistent path homology of
 dimensions *0, 1, 2, ..., p* (with p >= 0), the following has 
 to be done in a python interpreter (or in a script, it is up to you)
 
-> >>> from persistent_path_homology import *
-> >>> pph_X = PPH(X, A)
-> >>> pph_X.ComputePPH()
-> >>> print(pph.Pers)
+``` python
+from persistent_path_homology import *
+pph_X = PPH(X, A)
+pph_X.ComputePPH()
+print(pph.Pers)
+```
+
 
 Above, **pph_X** is an object of the class **PPH** and the method
 **ComputePPPH()** calculates the persistent path homology,
@@ -51,9 +54,12 @@ In case you wish to see the algorithm running step by step, you
 must call the method **ComputePPH_printing_step_by_step()**. For
 instance:
 
-> >>> from persistent_path_homology import *
-> >>> pph_X = PPH(X, A)
-> >>> pph_X.ComputePPH_printing_step_by_step()
+``` python
+from persistent_path_homology import *
+pph_X = PPH(X, A)
+pph_X.ComputePPH_printing_step_by_step()
+```
+
 
 ## TECHNICAL INFORMATION.
 ------------------------
@@ -68,11 +74,11 @@ This can be noticed by checking the algorithm proposed
 by Afra Zomorodian and Gunnar Carlsson, namely
 Computing Persistent Homology, to calculate persistent
 homology. This paper (the pdf) can be found in the link:
----> [pdf of the paper](https://geometry.stanford.edu/papers/zc-cph-05/)
+> [pdf of the paper](https://geometry.stanford.edu/papers/zc-cph-05/)
 
 2) The algorithm implemented here can be found
 at:
----> [paper pdf](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
+> [paper pdf](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
 by the authors: Samir Chowdhury and Facundo Mémoli.
 
 3) The software used to write this python script
@@ -81,9 +87,9 @@ Emacs embedded with all functionalities of
 VIM. I really recommend using emacs with
 this framework. Down bellow I leave its github
 repository:
----> [Doom-Emacs](https://github.com/hlissner/doom-emacs)
+> [Doom-Emacs](https://github.com/hlissner/doom-emacs)
 
 4) This script has been tested using python3 on
 a Ubuntu machine and it will make use of the library **numpy**:
-[Numpy](https://numpy.org/)
+> [Numpy](https://numpy.org/)
 
