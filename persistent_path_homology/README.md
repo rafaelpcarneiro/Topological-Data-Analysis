@@ -13,13 +13,12 @@ Here the field acting over the vector space is Z/2Z.
 
 ## HOW TO USE THIS SCRIPT
 
-Given a network *N = (X, A)* where *X* represents a
-set of points (a subset of R^n) and *A* a matrix of the weights.
-
-*X* is stored as a *numpy array** with shape satisfying
-    + X.shape[0] ---> size of our data
-    + X.shape[1] ---> dimension of the R^n space
-
+Given a network *N = (X, A)*, where *X* represents a
+set of points (a subset of R^n) satisfying
+> *X* is a *numpy array** with shape:
+>     X.shape[0] ---> size of our data
+>     X.shape[1] ---> dimension of the R^n space
+and *A* a matrix of the weights.
 *A* is stored as a *numpy array** with shape
     A.shape == (X.shape[0], X.shape[0]),
 and A must satisfy the conditions:
