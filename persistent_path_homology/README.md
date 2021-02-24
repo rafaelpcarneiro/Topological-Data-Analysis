@@ -64,23 +64,22 @@ pph_X.ComputePPH_printing_step_by_step()
 
 ## TECHNICAL INFORMATION.
 ------------------------
+1) The algorithm implemented here can be found
+at:
+> [Persistent Path Homology of Directed Networks](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
+by the authors: Samir Chowdhury and Facundo Mémoli. (**Obs**: I just recently noticed that the authors
+have their implementation of their algorithm here at Github. Their repository can be found here:
+[authors code](https://github.com/samirchowdhury/pypph))
 
-1) The algorithm proposed by the authors down bellow in 2) do not
+2) The algorithm proposed above do not
 work properly if we do not set the regular paths of
 dimension 0 to be marked. That is, it is mandatory to
 mark this regular paths otherwise the persistent features
 of dimension 0 won't be detected by the algorithm and also
 it will lead to incorrect persistent diagrams.
 This can be noticed by checking the algorithm proposed
-by Afra Zomorodian and Gunnar Carlsson, namely
-Computing Persistent Homology, to calculate persistent
-homology. This paper can be found in the link:
+at the paper
 > [Computing Persistent Homology](https://geometry.stanford.edu/papers/zc-cph-05/) by the authors Afra Zomorodian and Gunnar Carlsson.
-
-2) The algorithm implemented here can be found
-at:
-> [Persistent Path Homology of Directed Networks](https://epubs.siam.org/doi/10.1137/1.9781611975031.75)
-by the authors: Samir Chowdhury and Facundo Mémoli.
 
 3) The software used to write this python script
 was the magnificent **Doom-Emacs**, which is an
