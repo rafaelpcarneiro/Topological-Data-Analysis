@@ -430,7 +430,7 @@ class PPH:
                 self.basis[i][j] = basis_i_copy[ basis_i_aux[j][1] ]
 
 
-    def initializing_Marking_basis_vectors(self):
+    def initialize_Marking_basis_vectors(self):
         i = 0
         while i <= self.pph_dim + 1:
             self.Marked.append( np.zeros( self.basis_dim[i]  ) )
@@ -482,18 +482,16 @@ class PPH:
         self.T_p[dim][index][ self.EMPTY_INDEX ] = False
 
 
-
-    ###########################################################
-    ####### --------> Computing the persistence path diagram
-    ###########################################################
-
     def BasisChange(self, path_vector, path_dim ):
+        """
+        Implementing the function BasisChange as in the paper
+        """
 
         # Calculating the vector
         #    u  = d( path_vector ),
         # where d() is the boundary transformation.
         # Here u is going to have dimension path_dim - 1.
-
+        #
         # Here path_vector_indexes is a numpy array
         # storing the basis vectors that generate path_vector
         # and are not marked
@@ -552,7 +550,7 @@ class PPH:
         self.Basis_of_the_vector_spaces_spanned_by_regular_paths()
         self.dimensions_of_each_vector_space_spanned_by_regular_paths()
         self.sorting_the_basis_by_their_allow_times()
-        self.initializing_Marking_basis_vectors()
+        self.initialize_Marking_basis_vectors()
         self.generating_T_p()
 
         # ----> Now start with the algorithm proposed by the paper referenced
@@ -684,7 +682,7 @@ class PPH:
         self.Basis_of_the_vector_spaces_spanned_by_regular_paths()
         self.dimensions_of_each_vector_space_spanned_by_regular_paths()
         self.sorting_the_basis_by_their_allow_times()
-        self.initializing_Marking_basis_vectors()
+        self.initialize_Marking_basis_vectors()
         self.generating_T_p()
 
         print('Data info:')

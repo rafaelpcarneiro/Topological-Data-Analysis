@@ -65,7 +65,7 @@ pph_X.ComputePPH_printing_step_by_step()
 ## TECHNICAL INFORMATION.
 ------------------------
 
-1) **(Checking this! There is something not working here)** The algorithm proposed by the authors down bellow do not
+1) The algorithm proposed by the authors down bellow in 2) do not
 work properly if we do not set the regular paths of
 dimension 0 to be marked. That is, it is mandatory to
 mark this regular paths otherwise the persistent features
