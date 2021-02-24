@@ -586,8 +586,8 @@ class PPH:
                     basis_p_i = np.zeros( self.basis_dim[p] )
                     basis_p_i[i] = 1
 
-                    print('checking')
-                    print( self.allow_time( path_vector_of_basis, p+1 ) == self.allow_time( basis_p_i, p ))
+                    #print('checking')
+                    #print( self.allow_time( path_vector_of_basis, p+1 ) == self.allow_time( basis_p_i, p ))
 
                     self.Pers[p].append( [self.entry_time( basis_p_i, p ), et ] )
 
