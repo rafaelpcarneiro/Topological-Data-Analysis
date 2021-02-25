@@ -4,8 +4,8 @@ import numpy as np
 from persistent_path_homology import *
 import matplotlib.pyplot as plt
 
-DATA_SIZE = 10
-PPH_DIM   = 1
+DATA_SIZE = 11
+PPH_DIM   = 3
 
 ##### First Test
 def euclidean_distance( x, y ):
