@@ -31,7 +31,8 @@ and enclosed with brackets.
 [Persistent Path Homology of Directed Networks](https://arxiv.org/abs/1701.00565), from
 the authors Samir Chowdhury and Facundo Mémoli, I will implement
 in python their algorithm responsible to calculate Persistent Path Homology 
-from a network N=(X,A). This is done at the folder:
-[persistent_path_homology](./persistent_path_homology)
+from a network N=(X,A). This is done at the two folders below:
+  + **In Python** [persistent_path_homology(python3)](./persistent_path_homology(python3))
+  + **In C** for better performance than my python version [persistent_path_homology(C)](./persistent_path_homology(C))
 
 2. **(TODO)** **[Computing the persistent homology of data obtained by a pontual process**
