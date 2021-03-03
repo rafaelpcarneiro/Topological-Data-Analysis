@@ -82,7 +82,7 @@ typedef struct{
     base         *basis;
     unsigned int max_of_basis;
 
-} collection_of_bases;
+} collection_of_basis;
 
 /*================================================================
  * SETTING THE DATA TYPE TO DEAL WITH THE T_P STRUCTURE,
@@ -164,8 +164,7 @@ typedef struct {
 
 typedef struct {
     Pers_p Dgm_all_dimensions;
-    unsigend int pph;
-
+    unsigned int pph;
 } Pers;
 
 
@@ -238,13 +237,14 @@ typedef struct {
  * ComputePPH (...);
  *================================================================*/
 
-void generating_all_regular_paths_dim_p (collection_of_bases *B,
-                                         unsigned int dim,
+void generating_all_regular_paths_dim_p (collection_of_basis *B,
+                                         unsigned int dim_p,
                                          unsigned int network_set_size);
 
-void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_bases *B,
-                                                          unsigned int pph_dim);
-
+void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis *B,
+                                                          unsigned int pph_dim,
+                                                          unsigned int network_set_size);
+/*
 double allow_time (vector path_vector, unsigned int path_dim);
 
 double entry_time (vector path_vector, unsigned int path_dim );
@@ -270,5 +270,6 @@ void BasisChange (vector path_vector, unsigned int path_dim );
 
 Pers *ComputePPH(unsigned int pph_dim,
                  double **network_weight);
+*/
 
-#endif // __PERSISTENT_PATH_HOMOLOGY_H_
+#endif /* __PERSISTENT_PATH_HOMOLOGY_H_ */
