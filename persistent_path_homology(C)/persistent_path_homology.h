@@ -246,29 +246,41 @@ void generating_all_regular_paths_dim_p (collection_of_basis *B,
                                          unsigned int dim_p,
                                          unsigned int network_set_size);
 
+
 void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis *B,
                                                           unsigned int pph_dim,
                                                           unsigned int network_set_size);
 
+
+void initialize_Marking_basis_vectors (collection_of_basis *B);
+
+
+void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **network_weight);
+
+
 double allow_time (double **network_weight, collection_of_basis *B,
                    vector path_vector, unsigned int path_dim, unsigned int base_dim);
 
-double entry_time (vector path_vector, unsigned int path_dim );
 
-void sorting_the_basis_by_their_allow_times (void);
+double entry_time (double **network_weight, collection_of_basis *B,
+                   vector path_vector, unsigned int path_dim, unsigned int base_dim);
 
-void initialize_Marking_basis_vectors (collection_of_basis *B);
 
 void marking_vector_basis (collection_of_basis *B,
                            unsigned int vector_path_dim,
                            unsigned int vector_index);
 
-void generating_T_p (T_p *Tp, collection_of_basis *B);
 
-boolean is_T_p_dim_i_vector_j_empty (unsigned int dim,
-                                      unsigned int index);
+void generating_T_p (T_p *Tp, collection_of_basis *B, double **network_weight);
 
-void fill_T_p_dim_i_vector_j (unsigned int dim,
+
+boolean is_T_p_dim_i_vector_j_empty (T_p *Tp,
+                                     unsigned int dim,
+                                     unsigned int index);
+
+
+void fill_T_p_dim_i_vector_j (T_p *Tp,
+                              unsigned int dim,
                               unsigned int index,
                               vector u,
                               double et);
