@@ -105,7 +105,7 @@ void initialize_Marking_basis_vectors (collection_of_basis *B) {
     /*  Marking all regular paths of dimension 0 */
     for (j = 0; j < (B->basis)->dimension_of_the_vector_space_spanned_by_base; ++j)
         ((B->basis)->marks) [j] = MARKED;
-}
+} /*  Teste ok */
 
 
 void marking_vector_basis (collection_of_basis *B,
