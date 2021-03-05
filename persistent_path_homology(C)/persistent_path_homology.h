@@ -27,6 +27,12 @@
 #define TRUE  1
 #define FALSE 0
 
+#define MARKED 1
+#define NOT_MARKED 0
+
+#define EMPTY 1
+#define NOT_EMPTY 0
+
 typedef char boolean;
 
 typedef unsigned int vertex_index;
@@ -128,7 +134,6 @@ typedef struct{
     vector       path_vector;
     double       entry_time;
     boolean      is_empty;
-    unsigned int dim;
 
 } T_p_tuple;
 
@@ -244,19 +249,21 @@ void generating_all_regular_paths_dim_p (collection_of_basis *B,
 void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis *B,
                                                           unsigned int pph_dim,
                                                           unsigned int network_set_size);
-/*
-double allow_time (vector path_vector, unsigned int path_dim);
+
+double allow_time (double **network_weight, collection_of_basis *B,
+                   vector path_vector, unsigned int path_dim, unsigned int base_dim);
 
 double entry_time (vector path_vector, unsigned int path_dim );
 
 void sorting_the_basis_by_their_allow_times (void);
 
-void initialize_Marking_basis_vectors (void);
+void initialize_Marking_basis_vectors (collection_of_basis *B);
 
-void marking_vector_basis (unsigned int vector_dim,
+void marking_vector_basis (collection_of_basis *B,
+                           unsigned int vector_path_dim,
                            unsigned int vector_index);
 
-void generating_T_p (void);
+void generating_T_p (T_p *Tp, collection_of_basis *B);
 
 boolean is_T_p_dim_i_vector_j_empty (unsigned int dim,
                                       unsigned int index);
@@ -266,6 +273,7 @@ void fill_T_p_dim_i_vector_j (unsigned int dim,
                               vector u,
                               double et);
 
+/*
 void BasisChange (vector path_vector, unsigned int path_dim );
 
 Pers *ComputePPH(unsigned int pph_dim,
