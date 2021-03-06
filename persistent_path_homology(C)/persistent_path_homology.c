@@ -23,7 +23,9 @@ double allow_time_auxiliary (double **network_weight, regular_path path, unsigne
 }
 
 int compareTuple (const void *p1, const void *p2) {
-    return ((tuple*) p1)->allow_time_of_index -  ((tuple*) p2)->allow_time_of_index;
+    if ( ((tuple*) p1)->allow_time_of_index <  ((tuple*) p2)->allow_time_of_index )       return -1;
+    else if ( ((tuple*) p1)->allow_time_of_index ==  ((tuple*) p2)->allow_time_of_index ) return 0;
+    else                                                                                  return 1;
 }
 
 /*  Main Functions */
@@ -95,16 +97,21 @@ void initialize_Marking_basis_vectors (collection_of_basis *B) {
 
     unsigned int i, j;
 
-    for (i = 0; i <= B->max_of_basis + 1; ++i) {
+
+    for (i = 0; i <= B->max_of_basis; ++i) {
+
         (B->basis + i)->marks = malloc ( (B->basis + i)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean) );
 
-        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j)
+        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j){
             ((B->basis + i)->marks) [j] = NOT_MARKED;
+        }
     }
 
     /*  Marking all regular paths of dimension 0 */
+
     for (j = 0; j < (B->basis)->dimension_of_the_vector_space_spanned_by_base; ++j)
         ((B->basis)->marks) [j] = MARKED;
+
 } /*  Teste ok */
 
 
@@ -245,8 +252,18 @@ void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **ne
             (sort_this_array + j)->allow_time_of_index = allow_time_auxiliary (network_weight, ((B->basis + i)->base_matrix)[j], i);
         }
 
+
+        printf ("sort_this_array (before) - path dimension %u\n", i);
+        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j )
+            printf ("%6u %6.2f\n", (sort_this_array + j)->index, (sort_this_array + j)->allow_time_of_index);
+
         qsort (sort_this_array, (B->basis + i)->dimension_of_the_vector_space_spanned_by_base,
                sizeof (tuple), compareTuple);
+
+        printf ("sort_this_array (after) \n");
+        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j )
+            printf ("%6u %6.2f\n", (sort_this_array + j)->index, (sort_this_array + j)->allow_time_of_index);
+
 
         l = 0;
         j = 0;
