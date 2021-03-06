@@ -241,30 +241,20 @@ void fill_T_p_dim_i_vector_j (T_p *Tp,
 void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **network_weight) {
 
     unsigned int i, j, k, l, ii, iter_loop;
-    tuple *sort_this_array;
+    tuple        *sort_this_array;
     regular_path copy1_regular_path, copy2_regular_path;
-    boolean *change_indexes;
+    boolean      *change_indexes;
 
-    for (i = 0; i <= B->max_of_basis; ++i) {
+    for (i = 1; i <= B->max_of_basis; ++i) {
         sort_this_array = malloc ((B->basis + i)->dimension_of_the_vector_space_spanned_by_base * sizeof (tuple) );
 
         for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j ) {
-            (sort_this_array + j)->index = j;
+            (sort_this_array + j)->index               = j;
             (sort_this_array + j)->allow_time_of_index = allow_time_auxiliary (network_weight, ((B->basis + i)->base_matrix)[j], i);
         }
 
-
-        printf ("sort_this_array (before) - path dimension %u\n", i);
-        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j )
-            printf ("%6u %6.2f\n", (sort_this_array + j)->index, (sort_this_array + j)->allow_time_of_index);
-
         qsort (sort_this_array, (B->basis + i)->dimension_of_the_vector_space_spanned_by_base,
                sizeof (tuple), compareTuple);
-
-        printf ("sort_this_array (after) \n");
-        for (j = 0; j < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++j )
-            printf ("%6u %6.2f\n", (sort_this_array + j)->index, (sort_this_array + j)->allow_time_of_index);
-
 
         l = 0;
         j = 0;
@@ -273,29 +263,37 @@ void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **ne
         copy2_regular_path = malloc ((i + 1) * sizeof (vertex_index));
         change_indexes     = malloc ((B->basis + i)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
 
-        for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii] = ((B->basis + i)->base_matrix)[0][ii];
+        for (k = 0; k < i + 1; ++k) copy1_regular_path[k] = ((B->basis + i)->base_matrix)[0][k];
 
-        for (k = 0; k < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++k )
-            change_indexes[k] = FALSE;
+        for (k = 0; k < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++k ) change_indexes[k] = NOT_SORTED;
 
         while( l < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base) {
             for (k = 0; k < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++k ) {
 
-                if ((sort_this_array + k)->index == j ) {
-                    for (ii = 0; ii < i + 1; ++ii) copy2_regular_path[ii]               = ((B->basis + i)->base_matrix)[k][ii];
-                    for (ii = 0; ii < i + 1; ++ii) ((B->basis + i)->base_matrix)[k][ii] = copy1_regular_path[ii];
-                    for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii]               = copy2_regular_path[ii];
-                    ++l;
-                    printf ("%u --> %u, iteration = %u\n", j, k, l);
-                    j = k;
-                    change_indexes[j] = TRUE;
-                    break;
-                }
+                if ((sort_this_array + k)->index == j) {
+                    if (change_indexes[k] == NOT_SORTED) {
+                        for (ii = 0; ii < i + 1; ++ii) copy2_regular_path[ii]               = ((B->basis + i)->base_matrix)[k][ii];
+                        for (ii = 0; ii < i + 1; ++ii) ((B->basis + i)->base_matrix)[k][ii] = copy1_regular_path[ii];
+                        for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii]               = copy2_regular_path[ii];
 
+                        change_indexes[k] = SORTED;
+                        ++l;
+                        j = k;
+                        break;
+                    }
+                    else {
+                        j = iter_loop + 1;
+                        for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii] = ((B->basis + i)->base_matrix)[j][ii];
+
+                        iter_loop += 1;
+                        break;
+                    }
+                }
             }
         }
         free (copy1_regular_path);
         free (copy2_regular_path);
         free (sort_this_array);
+        free (change_indexes);
     } /*walking through the dimension of the regular paths*/
 } /*  end of the function sort */
