@@ -108,7 +108,7 @@ void initialize_Marking_basis_vectors (collection_of_basis *B) {
     }
 
     /*  Marking all regular paths of dimension 0 */
-
+  
     for (j = 0; j < (B->basis)->dimension_of_the_vector_space_spanned_by_base; ++j)
         ((B->basis)->marks) [j] = MARKED;
 
@@ -240,9 +240,10 @@ void fill_T_p_dim_i_vector_j (T_p *Tp,
 
 void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **network_weight) {
 
-    unsigned int i, j, k, l, ii;
+    unsigned int i, j, k, l, ii, iter_loop;
     tuple *sort_this_array;
     regular_path copy1_regular_path, copy2_regular_path;
+    boolean *change_indexes;
 
     for (i = 0; i <= B->max_of_basis; ++i) {
         sort_this_array = malloc ((B->basis + i)->dimension_of_the_vector_space_spanned_by_base * sizeof (tuple) );
@@ -267,10 +268,15 @@ void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **ne
 
         l = 0;
         j = 0;
+        iter_loop = j;
         copy1_regular_path = malloc ((i + 1) * sizeof (vertex_index));
         copy2_regular_path = malloc ((i + 1) * sizeof (vertex_index));
+        change_indexes     = malloc ((B->basis + i)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
 
         for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii] = ((B->basis + i)->base_matrix)[0][ii];
+
+        for (k = 0; k < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++k )
+            change_indexes[k] = FALSE;
 
         while( l < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base) {
             for (k = 0; k < (B->basis + i)->dimension_of_the_vector_space_spanned_by_base; ++k ) {
@@ -280,7 +286,9 @@ void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **ne
                     for (ii = 0; ii < i + 1; ++ii) ((B->basis + i)->base_matrix)[k][ii] = copy1_regular_path[ii];
                     for (ii = 0; ii < i + 1; ++ii) copy1_regular_path[ii]               = copy2_regular_path[ii];
                     ++l;
+                    printf ("%u --> %u, iteration = %u\n", j, k, l);
                     j = k;
+                    change_indexes[j] = TRUE;
                     break;
                 }
 
