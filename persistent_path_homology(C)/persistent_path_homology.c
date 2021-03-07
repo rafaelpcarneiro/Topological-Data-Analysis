@@ -4,7 +4,7 @@
 
 /*  Auxiliary functions */
 
-/*  Method used to help the qsort function to sort the array representing the base  */
+/*  Functions used to help the qsort function to sort the array representing the base  */
 typedef struct {
     vertex_index index;
     double       allow_time_of_index;
@@ -20,12 +20,33 @@ double allow_time_auxiliary (double **network_weight, regular_path path, unsigne
         distance = distance < network_weight[path[j]][path[j+1]] ? network_weight[path[j]][path[j+1]] : distance;
 
     return distance;
-}
+} /*  Tested Ok */
 
 int compareTuple (const void *p1, const void *p2) {
     if ( ((tuple*) p1)->allow_time_of_index <  ((tuple*) p2)->allow_time_of_index )       return -1;
     else if ( ((tuple*) p1)->allow_time_of_index ==  ((tuple*) p2)->allow_time_of_index ) return 0;
     else                                                                                  return 1;
+} /*  Tested Ok */
+
+/*  Auxiliary functions to help the algorithms involved with ComputePPH and BasisChange
+ *  to work
+ */
+boolean are_these_regular_paths_the_same (regular_path path1, regular_path path2, unsigned int path_dim) {
+
+    unsigned int i;
+    for (i = 0; i <= path_dim; ++i)
+        if ( path1[i] != path2[i] ) return FALSE;
+
+    return TRUE;
+}
+
+boolean is_this_path_a_regular_path (regular_path path, unsigned int path_dim) {
+    unsigned int i;
+
+    for (i = 0; i < path_dim; ++i)
+        if( path[i] == path[i+1] ) return FALSE;
+
+    return TRUE;
 }
 
 /*  Main Functions */
@@ -172,7 +193,7 @@ double allow_time (double **network_weight, collection_of_basis *B,
         }
     }
     return distance;
-}
+} /*  Tested Ok */
 
 
 double entry_time (double **network_weight, collection_of_basis *B,
@@ -205,6 +226,8 @@ double entry_time (double **network_weight, collection_of_basis *B,
                             ++l;
                         }
                     }
+                    if (is_this_path_a_regular_path (boundary, path_dim - 1) == FALSE) break;
+
                     for (l = 0; l < path_dim - 1; ++l) {
                         distance = distance < network_weight[boundary[l]] [boundary[l+1]]
                                 ? network_weight [boundary[l]] [boundary[l+1]] : distance;
@@ -296,4 +319,85 @@ void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **ne
         free (sort_this_array);
         free (change_indexes);
     } /*walking through the dimension of the regular paths*/
-} /*  end of the function sort */
+} /*  Tested Ok */
+
+
+vector BasisChange (collection_of_basis *B, T_p *Tp, double **network_weight, vector path_vector, unsigned int path_dim,
+                    double *return_et, unsigned int *return_max_index) {
+
+    vector u;
+
+    regular_path boundary_of_path_vector, temp;
+
+    unsigned int i, j, l, k, max_index;
+
+    double et = 0.0;
+
+    boundary_of_path_vector = malloc (path_dim * sizeof (vertex_index));
+
+    u = malloc ((B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
+
+    max_index = 0;
+
+    for (i = 0; i < (B->basis + path_dim)->dimension_of_the_vector_space_spanned_by_base; ++i) {
+
+        if (path_vector[i] == TRUE) {
+            /*apply the boundary operator*/
+            temp = ((B->basis + path_dim)->base_matrix)[i];
+
+            for (j = 0; j <= path_dim; ++j) {
+                l = 0;
+                for (k = 0; k <= path_dim; ++k) {
+                    if (k != j) {
+                        boundary_of_path_vector[l] = temp[k];
+                        ++l;
+                    }
+                }
+                if (is_this_path_a_regular_path (boundary_of_path_vector, path_dim - 1) == FALSE) break;
+
+                for (k = 0; k < (B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+                    if (are_these_regular_paths_the_same ((B->basis + path_dim - 1)->base_matrix[k],
+                                                          boundary_of_path_vector, path_dim - 1) == TRUE
+                        && ((B->basis + path_dim - 1)->marks)[k] == TRUE) {
+
+                        u[k] = (u[k] + 1) % 2;
+                        if (u[k] != 0) max_index = max_index < k ? k : max_index;
+                    }
+
+                }
+            }
+        }
+    } /*finished calcualting the border*/
+
+    while (max_index > 0) {
+        temp = ((B->basis + path_dim - 1)->base_matrix)[max_index];
+
+        et = allow_time (network_weight, B, u, path_dim - 1, (B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base)
+            <
+            allow_time_auxiliary (network_weight, temp, path_dim - 1 )
+            ?
+            allow_time_auxiliary (network_weight, temp, path_dim - 1 ) :
+            allow_time (network_weight, B, u, path_dim - 1, (B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base);
+
+        if (((Tp->all_Tp + path_dim - 1)->array_of_T_p_tuple + max_index)->is_empty == EMPTY) break;
+
+        for (k = 0; k < (B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+            u[k] = (u[k] + (((Tp->all_Tp + path_dim - 1)->array_of_T_p_tuple + max_index)->path_vector)[k] ) % 2;
+        }
+
+        /*now check again max_index*/
+        max_index = 0;
+        for (k = 0; k < (B->basis + path_dim - 1)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+            if (u[k] != 0) max_index = k;
+        }
+    }
+
+    /*returning the values*/
+    /*return_vector = u;*/
+    *return_et = et;
+    *return_max_index = max_index;
+    return u;
+}
+
+
+Pers *ComputePPH(unsigned int pph_dim, double **network_weight);

@@ -24,14 +24,17 @@
  *                 a_1, a_4 elements of the base B
  *================================================================*/
 
-#define TRUE  1
-#define FALSE 0
+#define TRUE       1
+#define FALSE      0
 
-#define MARKED 1
+#define MARKED     1
 #define NOT_MARKED 0
 
-#define EMPTY 1
-#define NOT_EMPTY 0
+#define EMPTY      1
+#define NOT_EMPTY  0
+
+#define SORTED     1
+#define NOT_SORTED 0
 
 typedef char boolean;
 
@@ -285,11 +288,15 @@ void fill_T_p_dim_i_vector_j (T_p *Tp,
                               vector u,
                               double et);
 
-/*
-void BasisChange (vector path_vector, unsigned int path_dim );
+
+vector BasisChange (collection_of_basis *B, T_p *Tp, double **network_weight, vector path_vector, unsigned int path_dim,
+                    double *return_et, unsigned int *return_max_index);
+
 
 Pers *ComputePPH(unsigned int pph_dim,
                  double **network_weight);
-*/
+
+
+double allow_time_auxiliary (double **network_weight, regular_path path, unsigned int path_dim);
 
 #endif /* __PERSISTENT_PATH_HOMOLOGY_H_ */
