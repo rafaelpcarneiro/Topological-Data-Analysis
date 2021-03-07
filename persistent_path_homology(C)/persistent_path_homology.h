@@ -1,98 +1,6 @@
 #ifndef __PERSISTENT_PATH_HOMOLOGY_H_
 #define __PERSISTENT_PATH_HOMOLOGY_H_
 
-
-/*================================================================
- * BASIC DATA TYPES
- * ---------------------------------------------------------------
- *
- * Explanation of each data type.
- *
- *================================================================
- * boolean      := a type of data that stores TRUE or FALSE
- *
- * vertex_index := indexes of the vertices of ours graphs
- *
- * regular_path := an array where each element is a vertex_index
- *
- * vector       := an array of booleans representing an
- *                 element of a Z/2Z-vector space of dimension p.
- *                 For instance, fixed a base B of such vector space,
- *                 then
- *                 vector w = {0, 1, 0, 0, 1};
- *                 means that w = a_1 + a_4, with
- *                 a_1, a_4 elements of the base B
- *================================================================*/
-
-#define TRUE       1
-#define FALSE      0
-
-#define MARKED     1
-#define NOT_MARKED 0
-
-#define EMPTY      1
-#define NOT_EMPTY  0
-
-#define SORTED     1
-#define NOT_SORTED 0
-
-typedef char boolean;
-
-typedef unsigned int vertex_index;
-
-typedef vertex_index *regular_path;
-
-typedef boolean *vector;
-
-
-/*================================================================
- * SETTING THE DATA TYPE TO DEAL WITH THE VECTOR SPACES,
- * REPRESENTED BY THEIR BASIS
- * ---------------------------------------------------------------
- *
- * Explanation of each of the data types.
- *
- *================================================================
- * base := a struct storing all info relative to a base of a vector
- *   |      space spanned by regular paths of dimension p
- *   |
- *   --> base_matrix := an array of regular regular paths with
- *   |                   the same dimension;
- *   |
- *   --> dimension_of_the_regular_path := the dimension of the
- *   |                   regular paths generating the vector space
- *   |
- *   --> dimension_of_the_vector_space_spanned_by_base := the number
- *   |                   of regular paths stored at basis_matrix
- *   |
- *   --> marks        := an array which informs wheter or not an
- *                      element of base is marked.
- *
- * collection_of_base := a struct containing all base structures.
- *   |
- *   |
- *   --> basis := an array of bases
- *   |
- *   |
- *   --> max_of_basis := an int saying how many elements basis
- *                has. That is, how many base structures we have
- *                created
- *================================================================*/
-
-typedef struct{
-    regular_path  *base_matrix;
-    unsigned int  dimension_of_the_regular_path;
-    unsigned int  dimension_of_the_vector_space_spanned_by_base;
-    boolean       *marks;
-
-} base;
-
-typedef struct{
-    base         *basis;
-    unsigned int max_of_basis;
-
-} collection_of_basis;
-
 /*================================================================
  * SETTING THE DATA TYPE TO DEAL WITH THE T_P STRUCTURE,
  * ---------------------------------------------------------------
@@ -241,20 +149,6 @@ typedef struct {
  * ComputePPH (...);
  *================================================================*/
 
-void generating_all_regular_paths_dim_p (collection_of_basis *B,
-                                         unsigned int dim_p,
-                                         unsigned int network_set_size);
-
-
-void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis *B,
-                                                          unsigned int pph_dim,
-                                                          unsigned int network_set_size);
-
-
-void initialize_Marking_basis_vectors (collection_of_basis *B);
-
-
-void sorting_the_basis_by_their_allow_times (collection_of_basis *B, double **network_weight);
 
 
 double allow_time (double **network_weight, collection_of_basis *B,
@@ -265,9 +159,6 @@ double entry_time (double **network_weight, collection_of_basis *B,
                    vector path_vector, unsigned int path_dim, unsigned int base_dim);
 
 
-void marking_vector_basis (collection_of_basis *B,
-                           unsigned int vector_path_dim,
-                           unsigned int vector_index);
 
 
 void generating_T_p (T_p *Tp, collection_of_basis *B, double **network_weight);
