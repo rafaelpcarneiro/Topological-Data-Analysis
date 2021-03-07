@@ -19,7 +19,7 @@
  * dim_base     := a type making clear that the integer is relative
  *                 to the dimension of a vector space spanned by
  *                 a base
- *
+ *                
  * regular_path := an array where each element is a vertex_index
  *
  * vector       := an array of booleans representing an
@@ -49,6 +49,8 @@ typedef unsigned int vertex_index;
 
 typedef unsigned int base_index;
 
+typedef unsigned int vector_index;
+
 typedef unsigned int dim_path;
 
 typedef unsigned int dim_vector_space;
@@ -57,5 +59,12 @@ typedef vertex_index *regular_path;
 
 typedef boolean      *vector;
 
+/*  Some functions dealing with these data types */
+boolean are_these_regular_paths_the_same (regular_path, regular_path, dim_path);
 
+boolean is_this_path_a_regular_path (regular_path, dim_path);
+
+boolean is_this_vector_zero (vector, dim_vector_space);
+
+void sum_these_vectors (vector, vector, dim_vector_space);
 #endif // __DEFINITIONS_H_
