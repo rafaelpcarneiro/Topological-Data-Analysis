@@ -106,4 +106,6 @@ dim_vector_space get_dimVS_of_ith_base (collection_of_basis*, dim_path);
 void set_dim_path_of_ith_base (collection_of_basis*, dim_path);
 
 void set_dimVS_of_ith_base (collection_of_basis*, dim_path, dim_vector_space);
+
+regular_path get_path_of_base_i_index_j (collection_of_basis*, dim_path, base_index);
 #endif // __BASIS_OF_VECTOR_SPACE_H_
