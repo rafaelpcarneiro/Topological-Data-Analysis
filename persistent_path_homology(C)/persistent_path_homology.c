@@ -49,6 +49,14 @@ boolean is_this_path_a_regular_path (regular_path path, unsigned int path_dim) {
     return TRUE;
 }
 
+boolean is_this_vector_zero (vector x, collection_of_basis *B, unsigned int path_dim) {
+    unsigned int i;
+
+    for (i = 0; i < (B->basis + path_dim)->dimension_of_the_vector_space_spanned_by_base; ++i)
+        if (x[i] != 0) return FALSE;
+    return TRUE;
+}
+
 /*  Main Functions */
 void generating_all_regular_paths_dim_p (collection_of_basis *B,
                                          unsigned int dim_p,
@@ -400,4 +408,100 @@ vector BasisChange (collection_of_basis *B, T_p *Tp, double **network_weight, ve
 }
 
 
-Pers *ComputePPH(unsigned int pph_dim, double **network_weight);
+Pers *ComputePPH(unsigned int pph_dim, double **network_weight, unsigned int network_set_size) {
+
+    unsigned int        i, j, k, p, max_index;
+    Pers                *PPH = malloc (sizeof (Pers));
+    Pers_interval_p     *copy, *new;
+    collection_of_basis B;
+    T_p                 Tp;
+    vector              v_j, u, v_i;
+    double              et;
+
+
+
+    PPH->pph = pph_dim;
+    PPH->Dgm_all_dimensions = malloc ((pph_dim + 1) * sizeof (Pers_interval_p));
+
+    for (i = 0; i <= pph_dim; ++i) {
+        copy = malloc (sizeof (Pers_interval_p));
+        copy->next = NULL;
+        (PPH->Dgm_all_dimensions + i)->next = copy; /*initializing the stacks*/
+    }
+
+    /*Setting the environment*/
+    Basis_of_the_vector_spaces_spanned_by_regular_paths (&B,  pph_dim, network_set_size);
+    initialize_Marking_basis_vectors (&B);
+    sorting_the_basis_by_their_allow_times (&B, network_weight);
+    generating_T_p (&Tp, &B, network_weight);
+
+    /*Now lets start the algorithm*/
+    for (p = 0; p <= pph_dim; ++p) {
+
+        u   = malloc (((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
+        v_j = malloc (((B.basis) + p + 1)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
+        v_i = malloc (((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base * sizeof (boolean));
+
+        for (j = 0; j < ((B.basis) + p + 1)->dimension_of_the_vector_space_spanned_by_base; ++j) {
+
+            for (k = 0; k < ((B.basis) + p + 1)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+                if (k == j) v_j[k] = TRUE;
+                else v_j[k] = FALSE;
+            }
+
+            u = BasisChange (&B, &Tp, network_weight, v_j, p + 1, &et, &max_index);
+
+            if (is_this_vector_zero (u, &B, p) == TRUE)
+                marking_vector_basis (&B, p + 1, j);
+            else {
+                fill_T_p_dim_i_vector_j (&Tp, p, max_index, u, et);
+
+                /*vector v_i*/
+                for (k = 0; k < ((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+                    if (k == max_index) v_i[k] = TRUE;
+                    else v_i[k] = FALSE;
+                }
+                ((PPH->Dgm_all_dimensions + p)->PPH_interval_dim_p)[0] = entry_time (network_weight,
+                                                                                     &B,
+                                                                                     v_i,
+                                                                                     p,
+                                                                                     ((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base);
+                ((PPH->Dgm_all_dimensions + p)->PPH_interval_dim_p)[1] = et;
+
+                new       = malloc (sizeof (Pers_interval_p));
+                new->next = (PPH->Dgm_all_dimensions + p)->next;
+                (PPH->Dgm_all_dimensions + p)->next = new;
+            }
+        }
+        for (j = 0; j < ((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base; ++j) {
+
+            if (is_T_p_dim_i_vector_j_empty (&Tp, p, j) == EMPTY &&
+                (((B.basis) + p)->marks)[j] == MARKED ) {
+
+                /*vector v_i*/
+                for (k = 0; k < ((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base; ++k) {
+                    if (k == max_index) v_i[k] = TRUE;
+                    else v_i[k] = FALSE;
+                }
+
+                ((PPH->Dgm_all_dimensions + p)->PPH_interval_dim_p)[0] = entry_time (network_weight,
+                                                                                     &B,
+                                                                                     v_i,
+                                                                                     p,
+                                                                                     ((B.basis) + p)->dimension_of_the_vector_space_spanned_by_base);
+                ((PPH->Dgm_all_dimensions + p)->PPH_interval_dim_p)[1] = -1.0;
+
+                new       = malloc (sizeof (Pers_interval_p));
+                new->next = (PPH->Dgm_all_dimensions + p)->next;
+                (PPH->Dgm_all_dimensions + p)->next = new;
+
+            }
+        }
+
+        free (u);
+        free (v_i);
+        free (v_j);
+    }
+
+    return PPH;
+}

@@ -160,18 +160,14 @@ typedef struct{
  *================================================================
  *================================================================*/
 
-
-typedef struct {
-   double PPH_interval_dim_p[2];
+/*  a stack is introduced down bellow  */
+typedef struct persistent_interval{
+    double                     PPH_interval_dim_p[2];
+    struct persistent_interval *next;
 } Pers_interval_p;
 
 typedef struct {
-    Pers_interval_p *all_intervals_dim_p;
-    unsigned int    how_many_intervals_dim_p;
-} Pers_p;
-
-typedef struct {
-    Pers_p Dgm_all_dimensions;
+    Pers_interval_p *Dgm_all_dimensions;
     unsigned int pph;
 } Pers;
 
@@ -294,7 +290,8 @@ vector BasisChange (collection_of_basis *B, T_p *Tp, double **network_weight, ve
 
 
 Pers *ComputePPH(unsigned int pph_dim,
-                 double **network_weight);
+                 double **network_weight,
+                 unsigned int network_set_size);
 
 
 double allow_time_auxiliary (double **network_weight, regular_path path, unsigned int path_dim);
