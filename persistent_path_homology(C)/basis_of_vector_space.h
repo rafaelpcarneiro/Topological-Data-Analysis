@@ -76,11 +76,12 @@ typedef struct{
 } collection_of_basis;
 
 /*  FUNCTIONS OPERATING ON THESE STRUCTS  */
-collection_of_basis *alloc_all_basis (dim_vector_space, unsigned int);
+collection_of_basis *alloc_all_basis (dim_vector_space, unsigned int, double**);
 
 void generating_all_regular_paths_dim_p (collection_of_basis*,
                                          dim_path,
-                                         unsigned int);
+                                         unsigned int,
+                                         double**);
 
 
 void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis*,
@@ -91,11 +92,11 @@ void Basis_of_the_vector_spaces_spanned_by_regular_paths (collection_of_basis*,
 void initialize_Marking_basis_vectors (collection_of_basis*);
 
 
-void sorting_the_basis_by_their_allow_times (collection_of_basis*, double**);
+void sorting_the_basis_by_their_allow_times (collection_of_basis*);
 
-void marking_vector_basis (collection_of_basis*, unsigned int, unsigned int);
+void marking_vector_basis (collection_of_basis*, dim_path, base_index);
 
-double allow_time_auxiliary (double**, regular_path, unsigned int);
+double allow_time_regular_path (double**, regular_path, dim_path);
 
 int compareTuple (const void*, const void*);
 
