@@ -64,7 +64,7 @@ typedef struct{
 } T_p;
 
 /*  Functions acting into these types */
-void alloc_T_p (collection_of_basis*);
+T_p *alloc_T_p (collection_of_basis*);
 
 /*  setters and getters */
 void set_T_p_pathDim_i_vector_j (T_p*, dim_path, vector_index, vector, double);

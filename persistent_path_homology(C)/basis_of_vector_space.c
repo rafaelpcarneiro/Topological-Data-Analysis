@@ -24,6 +24,9 @@ regular_path get_path_of_base_i_index_j (collection_of_basis *B, dim_path dim_i,
     return (base_i->base_matrix + j)->ith_base;
 }
 
+boolean is_path_of_dimPath_p_index_j_marked (collection_of_basis *B, dim_path path_dim, base_index index) {
+    return ((B->basis + path_dim)->marks)[index];
+}
 
 /*  main functions */
 collection_of_basis *alloc_all_basis (unsigned int number_of_bases_to_allocate,

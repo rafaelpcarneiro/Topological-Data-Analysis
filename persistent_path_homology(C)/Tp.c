@@ -4,7 +4,7 @@
 
 /*  main functions */
 
-void alloc_T_p (collection_of_basis *B) {
+T_p *alloc_T_p (collection_of_basis *B) {
 
     T_p                  *Tp = malloc (sizeof (T_p));
     T_p_tuple_collection *Tp_i;
@@ -27,6 +27,7 @@ void alloc_T_p (collection_of_basis *B) {
             Tp_i_j->is_empty    = EMPTY;
         }
     }
+    return Tp;
 }
 
 
